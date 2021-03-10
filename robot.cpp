@@ -406,6 +406,18 @@ void RobotModel::draw()
 	// projection matrix, don't bother with this ...
 	ModelerView::draw();
 
+	// set light source
+	GLfloat light_pos[] = { VAL(LIGHT_POS_X), VAL(LIGHT_POS_Y), VAL(LIGHT_POS_Z), 0 };
+	GLfloat light1_pos[] = { VAL(LIGHT1_POS_X), VAL(LIGHT1_POS_Y), VAL(LIGHT1_POS_Z), 0 };
+	float intensity = VAL(LIGHT_INTENSITY);
+	GLfloat light_intensity[] = { intensity, intensity, intensity, 1 };
+	glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, light_intensity);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, light_intensity);
+	glLightfv(GL_LIGHT1, GL_POSITION, light1_pos);
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, light_intensity);
+	glLightfv(GL_LIGHT1, GL_SPECULAR, light_intensity);
+
 	// draw the floor
 	setAmbientColor(.1f, .1f, .1f);
 	setDiffuseColor(COLOR_RED);
@@ -684,6 +696,13 @@ int main()
 	controls[HEAD_ROTATE] = ModelerControl("Head Rotate", -90, 90, 0.2f, 0);
 	controls[LEFT_FEET_ROTATE] = ModelerControl("Left Feet Rotate", 0, 45, 0.2f, 0);
 	controls[RIGHT_FEET_ROTATE] = ModelerControl("Right Feet Rotate", 0, 45, 0.2f, 0);
+	controls[LIGHT_POS_X] = ModelerControl("Light 0 source position X", -100, 100, 1, 50);
+	controls[LIGHT_POS_Y] = ModelerControl("Light 0 source position Y", -100, 100, 1, 50);
+	controls[LIGHT_POS_Z] = ModelerControl("Light 0 source position Z", -100, 100, 1, 50);
+	controls[LIGHT1_POS_X] = ModelerControl("Light 1 source position X", -100, 100, 1, -100);
+	controls[LIGHT1_POS_Y] = ModelerControl("Light 1 source position Y", -100, 100, 1, -100);
+	controls[LIGHT1_POS_Z] = ModelerControl("Light 1 source position Z", -100, 100, 1, -100);
+	controls[LIGHT_INTENSITY] = ModelerControl("Light intensity", 0, 1, 0.01f, 1);
 
 	ModelerApplication::Instance()->Init(&createSampleModel, controls, NUMCONTROLS);
 	return ModelerApplication::Instance()->Run();
