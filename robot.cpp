@@ -4,8 +4,12 @@
 #include "modelerapp.h"
 #include "modelerdraw.h"
 #include <FL/gl.h>
-
+#include <cmath>
 #include "modelerglobals.h"
+
+#ifndef M_PI
+#define M_PI 3.141592653589793238462643383279502
+#endif
 
 // To make a SampleModel, we inherit off of ModelerView
 class RobotModel : public ModelerView
@@ -126,6 +130,273 @@ void draw_prism5_helper(float v[][3])
 	glEnd();
 }
 
+void drawShouder()
+{
+	glPushMatrix();
+	glScaled(3, 3, 0.5);
+
+	//First part of arm
+	float points[5][2] = {
+		{0.0f, 0.0f},
+		{0.5f, 0.0f},
+		{0.8f, 0.7f},
+		{0.3f, 0.7f},
+		{-0.2f, 0.2f}
+	};
+	//Upper part
+	glBegin(GL_POLYGON);
+	for (int i = 0; i < 5; i++)
+		glVertex3f(points[i][0], points[i][1], -2.5);
+	glEnd();
+
+	glBegin(GL_POLYGON);
+	for (int i = 0; i < 5; i++)
+		glVertex3f(points[i][0], points[i][1], 0);
+	glEnd();
+
+	for (int i = 0; i < 5; i++)
+	{
+		glBegin(GL_POLYGON);
+		glVertex3f(points[i % 5][0], points[i % 5][1], -2.5);
+		glVertex3f(points[(i + 1) % 5][0], points[(i + 1) % 5][1], -2.5);
+		glVertex3f(points[(i + 1) % 5][0], points[(i + 1) % 5][1], 0);
+		glVertex3f(points[i % 5][0], points[i % 5][1], 0);
+		glEnd();
+	}
+
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslated(1.5, 0, -1);
+	drawBox(2, 1, 1);
+	glPopMatrix();
+}
+
+void drawUpperArm()
+{
+	//Lower part
+	drawBox(0.5,2.5, 0.5);
+}
+
+void drawHexagonalPrisms()
+{
+	float s_60 = sin(M_PI / 3);
+
+	float points[6][2] = { {2,0},
+		{1, 2 * s_60},
+		{-1, 2 * s_60},
+		{-2, 0},
+		{-1, -2 * s_60},
+		{1, -2 * s_60} };
+
+	glBegin(GL_POLYGON);
+	for (int i = 0; i < 6; i++)
+		glVertex3f(points[i][0], points[i][1], -2.5);
+	glEnd();
+
+	glBegin(GL_POLYGON);
+	for (int i = 0; i < 6; i++)
+		glVertex3f(points[i][0], points[i][1], 0);
+	glEnd();
+
+	for (int i = 0; i < 6; i++)
+	{
+		glBegin(GL_POLYGON);
+		glVertex3f(points[i % 6][0], points[i % 6][1], -2.5);
+		glVertex3f(points[(i + 1) % 6][0], points[(i + 1) % 6][1], -2.5);
+		glVertex3f(points[(i + 1) % 6][0], points[(i + 1) % 6][1], 0);
+		glVertex3f(points[i % 6][0], points[i % 6][1], 0);
+		glEnd();
+	}
+
+}
+
+void drawLowerArm() {
+	glPushMatrix();
+	glScaled(0.4, 0.4, 0.4);
+
+	setDiffuseColor(0.8f, 0.8f, 0.8f);
+	glPushMatrix();
+	glRotated(90, 0.0, 1.0, 0.0);
+	drawCylinder(1.2, 0.8, 0.8);
+	glPopMatrix();
+
+	float delta = 0.25;
+
+	setDiffuseColor(1.0f, 1.0f, 0.0f);
+
+	glPushMatrix();
+	glTranslated(0.6, 0, 0.5 * 2.5 + delta);
+	glRotated(30, 0.0, 0.0, 1.0);
+	glScaled(0.7, 0.7, 0.5);
+	drawHexagonalPrisms();
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslated(0.6, 0, (0.5 + 0.7) * 2.5 + delta);
+	glRotated(30, 0.0, 0.0, 1.0);
+	glScaled(1, 1, 0.7);
+	drawHexagonalPrisms();
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslated(0.6, 0, (0.5 + 0.7 + 1) * 2.5 + delta);
+	glRotated(30, 0.0, 0.0, 1.0);
+	glScaled(1.3, 1.3, 1);
+	drawHexagonalPrisms();
+	glPopMatrix();
+
+	glPopMatrix();
+
+}
+
+void drawHand()
+{
+	setDiffuseColor(0.8f, 0.8f, 0.8f);
+	drawBox(1, 1, 0.6);
+
+	setDiffuseColor(1.0f, 1.0f, 0.0f);
+	glPushMatrix();
+	glTranslated(-0.25, -0.5, 0.6);
+	drawBox(1.5, 2, 1.7);
+
+	//glPushMatrix();
+	//glTranslated(0.15,1.4, 1.7);
+	//drawBox(0.2, 0.5, 0.5);
+	//glPopMatrix();
+
+	//glPushMatrix();
+	//glTranslated(0.15, 0.75, 1.7);
+	//drawBox(0.2, 0.5, 0.5);
+	//glPopMatrix();
+
+	//glPushMatrix();
+	//glTranslated(0.15, 0.1, 1.7);
+	//drawBox(0.2, 0.5, 0.5);
+	//glPopMatrix();
+
+	glPopMatrix();
+
+
+}
+
+void drawFinger() {
+
+	glPushMatrix();
+	glRotated(90, 1.0, 0.0, 0.0);
+	setDiffuseColor(0.8f, 0.8f, 0.8f);
+	drawCylinder(0.5, 0.2, 0.2);
+
+	setDiffuseColor(1.0f, 1.0f, 0.0f);
+	glPushMatrix();
+	glTranslated(0, -0.1, 0);
+	drawBox(1.4, 0.4, 0.5);
+	glPopMatrix();
+
+
+	setDiffuseColor(1.0f, 1.0f, 0.0f);
+	glPushMatrix();
+	glTranslated(1.4, -1.1, 0);
+	drawBox(0.4, 1.0, 0.5);
+	glPopMatrix();
+
+	setDiffuseColor(0.8f, 0.8f, 0.8f);
+	glPushMatrix();
+	glTranslated(1.4, 0.0, 0);
+	drawCylinder(0.5, 0.2, 0.2);
+	glPopMatrix();
+	glPopMatrix();
+
+}
+
+void drawThumb()
+{
+	glPushMatrix();
+	glRotated(-90, 0.0, 1.0, 0.0);
+
+	setDiffuseColor(0.8f, 0.8f, 0.8f);
+	drawCylinder(1, 0.2, 0.2);
+
+	setDiffuseColor(1.0f, 1.0f, 0.0f);
+
+	glPushMatrix();
+	glRotated(20, 0.0, 0.0, 1.0);
+	glTranslated(0, -0.1, 0);
+	drawBox(0.8, 0.4, 1);
+
+	setDiffuseColor(0.8f, 0.8f, 0.8f);
+	glPushMatrix();
+	glTranslated(0.8, 0.1, 0);
+	drawCylinder(1, 0.2, 0.2);
+
+	setDiffuseColor(1.0f, 1.0f, 0.0f);
+	glPushMatrix();
+	glRotated(-20, 0.0, 0.0, 1.0);
+	glTranslated(0, -0.1, 0);
+	drawBox(1.0, 0.4, 1);
+	glPopMatrix();
+
+	glPopMatrix();
+
+	glPopMatrix();
+
+
+	glPopMatrix();
+}
+
+void drawArm()
+{
+	drawShouder();
+	glPushMatrix();
+	glTranslated(0.5, -2, -0.75);
+	drawUpperArm();
+
+	glPushMatrix();
+	glTranslated(0, 0, 0.5);
+	drawLowerArm();
+
+	glPushMatrix();
+	glTranslated(-0.2, -0.5, (0.5 + 0.7 + 1) * 2.5 * 0.4);
+	drawHand();
+
+	glPushMatrix();
+	glTranslated(-0.25, -0.5, 0.6);
+	glPushMatrix();
+	glTranslated(0.15, 1.4, 1.7);
+	glTranslated(0.2, 0.5, 0.2);
+	drawFinger();
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslated(0.15, 0.75, 1.7);
+	glTranslated(0.2, 0.5, 0.2);
+	drawFinger();
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslated(0.15, 0.1, 1.7);
+	glTranslated(0.2, 0.5, 0.2);
+	drawFinger();
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslated(0.15, 0.1, 0.5);
+	glTranslated(1.2, 1.9, 0);
+	drawThumb();
+	glPopMatrix();
+
+	glPopMatrix();
+
+	glPopMatrix();
+
+	glPopMatrix();
+
+	glPopMatrix();
+}
+
+
+
+
 // We are going to override (is that the right word?) the draw()
 // method of ModelerView to draw out SampleModel
 void RobotModel::draw()
@@ -142,6 +413,7 @@ void RobotModel::draw()
 	glTranslated(-25, -8, -25);
 	drawBox(50, 0.01f, 50);
 	glPopMatrix();
+
 
 	// draw the model
 	setAmbientColor(.1f, .1f, .1f);
@@ -168,6 +440,25 @@ void RobotModel::draw()
 	  drawCylinder(h_middle, r1, r1);
 	  glRotated(-90, 1, 0, 0);
 	  glScaled(1 / body_depth_scale, 1, 1 / body_width_scale);
+	  
+	  float delta1 = 1.5;
+	  glPushMatrix();
+	  {
+		  glRotated(-90, 0, 1.0, 0);
+		  glTranslated(-h_top- r_bottom-delta1, 0, 0);
+		  drawArm();
+	  }
+	  glPopMatrix();
+
+	  glPushMatrix();
+	  {
+		  glRotated(-90, 0, 1.0, 0);
+		  glScaled(-1, 1, 1);
+		  glTranslated(-h_top - r_bottom - delta1, 0, 0);
+		  drawArm();
+	  }
+	  glPopMatrix();
+	  
 	  glPushMatrix();
 	  {
 		  // top body
@@ -375,6 +666,9 @@ void RobotModel::draw()
 	  }
 	  glPopMatrix();
 	}
+	glPopMatrix();
+
+
 	glPopMatrix();
 }
 
