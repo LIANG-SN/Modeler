@@ -178,9 +178,37 @@ void Camera::applyViewingTransform() {
 
 	// Place the camera at mPosition, aim the camera at
 	// mLookAt, and twist the camera such that mUpVector is up
-	gluLookAt(	mPosition[0], mPosition[1], mPosition[2],
+	
+	/*gluLookAt(	mPosition[0], mPosition[1], mPosition[2],
 				mLookAt[0],   mLookAt[1],   mLookAt[2],
-				mUpVector[0], mUpVector[1], mUpVector[2]);
+				mUpVector[0], mUpVector[1], mUpVector[2]);*/
+
+	// my look at func
+	lookAt(Vec3f(mPosition[0], mPosition[1], mPosition[2]),
+		Vec3f(mLookAt[0], mLookAt[1], mLookAt[2]),
+		Vec3f(mUpVector[0], mUpVector[1], mUpVector[2]));
 }
 
+void Camera::lookAt(Vec3f eye, Vec3f at, Vec3f up)
+{
+	// ref: http://www.songho.ca/opengl/gl_camera.html
+
+	Vec3f F(eye[0] - at[0], eye[1] - at[1], eye[2] - at[2]);
+	F.normalize();
+	Vec3f U(up[0], up[1], up[2]);
+	U.normalize();
+	Vec3f L = U ^ F;
+	L.normalize();
+	U = F ^ L;
+	U.normalize();
+	float m[16] =
+	{   L[0], U[0], F[0], 0,
+		L[1], U[1], F[1], 0,
+		L[2], U[2], F[2], 0,
+		0,	0, 0, 1
+	};
+	glMatrixMode(GL_MODELVIEW);
+	glMultMatrixf(m);
+	glTranslatef(-mPosition[0], -mPosition[1], -mPosition[2]);
+}
 #pragma warning(pop)
