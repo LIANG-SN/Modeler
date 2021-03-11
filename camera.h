@@ -19,6 +19,7 @@ protected:
     float		mDolly;
     float		mTwist; // Not implemented yet
     
+
     Vec3f		mLookAt;
     
     Vec3f		mPosition;
@@ -63,12 +64,14 @@ public:
     { mTwist = twist; mDirtyTransform = true; }
     inline float getTwist() const
     { return mTwist; }
+
     
     inline void setLookAt( const Vec3f &lookAt )
     { mLookAt = lookAt; mDirtyTransform = true;}
     inline Vec3f getLookAt() const
     { return mLookAt; }
     
+
     //---[ Interactive Adjustment ]------------------------
     // these should be used from a mouse event handling routine that calls
     // the startX method on a mouse down, updateX on mouse move and finally
