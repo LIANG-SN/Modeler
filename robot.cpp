@@ -11,6 +11,11 @@
 #define M_PI 3.141592653589793238462643383279502
 #endif
 
+enum LeftOrRight
+{
+	LEFT, RIGHT
+};
+
 // To make a SampleModel, we inherit off of ModelerView
 class RobotModel : public ModelerView
 {
@@ -166,10 +171,7 @@ void drawShouder()
 
 	glPopMatrix();
 
-	glPushMatrix();
-	glTranslated(1.5, 0, -1);
-	drawBox(2, 1, 1);
-	glPopMatrix();
+
 }
 
 void drawUpperArm()
@@ -253,13 +255,17 @@ void drawLowerArm() {
 void drawHand()
 {
 	setDiffuseColor(0.8f, 0.8f, 0.8f);
-	drawBox(1, 1, 0.6);
+	glPushMatrix();
+	glRotated(90, 1.0, 0, 0);
+	glTranslated(0.5,0.3,-1);
+	drawCylinder(1, 0.3, 0.3);
+	glPopMatrix();
 
 	setDiffuseColor(1.0f, 1.0f, 0.0f);
 	glPushMatrix();
 	glTranslated(-0.25, -0.5, 0.6);
 	drawBox(1.5, 2, 1.7);
-
+	glPopMatrix();
 	//glPushMatrix();
 	//glTranslated(0.15,1.4, 1.7);
 	//drawBox(0.2, 0.5, 0.5);
@@ -275,122 +281,280 @@ void drawHand()
 	//drawBox(0.2, 0.5, 0.5);
 	//glPopMatrix();
 
-	glPopMatrix();
 
 
-}
-
-void drawFinger() {
-
-	glPushMatrix();
-	glRotated(90, 1.0, 0.0, 0.0);
-	setDiffuseColor(0.8f, 0.8f, 0.8f);
-	drawCylinder(0.5, 0.2, 0.2);
-
-	setDiffuseColor(1.0f, 1.0f, 0.0f);
-	glPushMatrix();
-	glTranslated(0, -0.1, 0);
-	drawBox(1.4, 0.4, 0.5);
-	glPopMatrix();
-
-
-	setDiffuseColor(1.0f, 1.0f, 0.0f);
-	glPushMatrix();
-	glTranslated(1.4, -1.1, 0);
-	drawBox(0.4, 1.0, 0.5);
-	glPopMatrix();
-
-	setDiffuseColor(0.8f, 0.8f, 0.8f);
-	glPushMatrix();
-	glTranslated(1.4, 0.0, 0);
-	drawCylinder(0.5, 0.2, 0.2);
-	glPopMatrix();
-	glPopMatrix();
 
 }
 
-void drawThumb()
+void drawFinger(LeftOrRight rl, int num) {
+
+	int angle = 70 * VAL(ROCKET_GRAB) / 100;
+	glPushMatrix();
+	{
+		glRotated(90, 1.0, 0.0, 0.0);
+		setDiffuseColor(0.8f, 0.8f, 0.8f);
+		drawCylinder(0.5, 0.2, 0.2);
+
+		setDiffuseColor(1.0f, 1.0f, 0.0f);
+		glPushMatrix();
+		{
+			glTranslated(0, -0.1, 0);
+			if (rl == LEFT) 
+				glRotated(VAL(LEFT_FINGER1_FIRST_JOINT_ROTATE + (num - 1) * 4), 0,0,1);
+			else {
+				int angle1 = VAL(RIGHT_FINGER1_FIRST_JOINT_ROTATE + (num - 1) * 4) + angle;
+				if (angle1 > 90)
+					angle1 = 90;
+				glRotated(angle1, 0, 0, 1);
+			}
+
+			
+			drawBox(1.4, 0.4, 0.5);
+
+			glPushMatrix();
+			{
+				glTranslated(1.4, 0, 0);
+
+				if (rl == LEFT)
+					glRotated(VAL(LEFT_FINGER1_SECOND_JOINT_ROTATE + (num - 1) * 4), 0, 0, 1);
+				else {
+					int angle2 = VAL(RIGHT_FINGER1_SECOND_JOINT_ROTATE + (num - 1) * 4) + angle;
+					if (angle2 > 90)
+						angle2 = 90;
+					glRotated(angle2, 0, 0, 1);
+				}
+
+				setDiffuseColor(0.8f, 0.8f, 0.8f);
+				drawCylinder(0.5, 0.2, 0.2);
+
+				setDiffuseColor(1.0f, 1.0f, 0.0f);
+				glTranslated(0, -1, 0);
+				drawBox(0.4, 1.0, 0.5);
+			}
+			glPopMatrix();
+		}
+		glPopMatrix();
+	}
+	glPopMatrix();
+
+}
+
+void drawThumb(LeftOrRight rl)
+{
+	int angle;
+	if (rl == LEFT)
+		angle = VAL(LEFT_THUMB_UP);
+	else {
+		angle = VAL(RIGHT_THUMB_UP) + 60 * VAL(ROCKET_GRAB) / 100;
+		if (angle > 70)
+			angle = 70;
+	}
+
+
+	glPushMatrix();
+	{
+		glRotated(-90, 0.0, 1.0, 0.0);
+
+		setDiffuseColor(0.8f, 0.8f, 0.8f);
+		drawCylinder(1, 0.2, 0.2);
+
+		setDiffuseColor(1.0f, 1.0f, 0.0f);
+
+		glPushMatrix();
+		{
+			glRotated(20 + angle, 0.0, 0.0, 1.0);
+			glTranslated(0, -0.1, 0);
+			drawBox(0.8, 0.4, 1);
+
+			setDiffuseColor(0.8f, 0.8f, 0.8f);
+			glPushMatrix();
+			{
+				glTranslated(0.8, 0.1, 0);
+				drawCylinder(1, 0.2, 0.2);
+
+				setDiffuseColor(1.0f, 1.0f, 0.0f);
+				glPushMatrix();
+				glRotated(-20+20*angle/70, 0.0, 0.0, 1.0);
+				glTranslated(0, -0.1, 0);
+				drawBox(1.0, 0.4, 1);
+				glPopMatrix();
+			}
+			glPopMatrix();
+		}
+		glPopMatrix();
+	}
+	glPopMatrix();
+}
+
+void drawLeftArm()
 {
 	glPushMatrix();
-	glRotated(-90, 0.0, 1.0, 0.0);
+	{
+		glScaled(-1, 1, 1);
+		drawShouder();
+		glPushMatrix();
+		{
+			glTranslated(0.5, -2, -0.75);
 
-	setDiffuseColor(0.8f, 0.8f, 0.8f);
-	drawCylinder(1, 0.2, 0.2);
+			glRotated(-VAL(LEFT_ARM_Y_ROTATE), 0, 1.0, 0);
 
-	setDiffuseColor(1.0f, 1.0f, 0.0f);
+			glTranslated(0, 2, 0);
+			glRotated(-VAL(LEFT_ARM_Z_ROTATE), 0, 0, 1.0);
+			glTranslated(0, -2, 0);
+		
+			drawUpperArm();
 
-	glPushMatrix();
-	glRotated(20, 0.0, 0.0, 1.0);
-	glTranslated(0, -0.1, 0);
-	drawBox(0.8, 0.4, 1);
+			glPushMatrix();
+			{
+				glTranslated(0, 0, 0.5);
+				glRotated(VAL(LEFT_LOWER_ARM_ROTATE), 1, 0, 0);
 
-	setDiffuseColor(0.8f, 0.8f, 0.8f);
-	glPushMatrix();
-	glTranslated(0.8, 0.1, 0);
-	drawCylinder(1, 0.2, 0.2);
+				drawLowerArm();
 
-	setDiffuseColor(1.0f, 1.0f, 0.0f);
-	glPushMatrix();
-	glRotated(-20, 0.0, 0.0, 1.0);
-	glTranslated(0, -0.1, 0);
-	drawBox(1.0, 0.4, 1);
-	glPopMatrix();
+				glPushMatrix();
+				{
+					glTranslated(-0.2, -0.5, (0.5 + 0.7 + 1) * 2.5 * 0.4);
 
-	glPopMatrix();
+					glTranslated(0.5,0.5,0);
+					glRotated(VAL(LEFT_HAND_ROTATE), 0, 0, 1.0);
+					glTranslated(-0.5, -0.5, 0);
 
-	glPopMatrix();
+					drawHand();
 
+					glPushMatrix();
+					{
+						glTranslated(-0.25, -0.5, 0.6);
+						glPushMatrix();
+						{
+							glTranslated(0.15, 1.4, 1.7);
+							glTranslated(0.2, 0.5, 0.2);
+							drawFinger(LEFT,1);
+						}
+						glPopMatrix();
 
+						glPushMatrix();
+						{
+							glTranslated(0.15, 0.75, 1.7);
+							glTranslated(0.2, 0.5, 0.2);
+							drawFinger(LEFT, 2);
+						}
+						glPopMatrix();
+
+						glPushMatrix();
+						{
+							glTranslated(0.15, 0.1, 1.7);
+							glTranslated(0.2, 0.5, 0.2);
+							drawFinger(LEFT,3);
+						}
+						glPopMatrix();
+
+						glPushMatrix();
+						{
+							glTranslated(0.15, 0.1, 0.5);
+							glTranslated(1.2, 1.9, 0);
+							drawThumb(LEFT);
+						}
+						glPopMatrix();
+					}
+					glPopMatrix();
+				}
+				glPopMatrix();
+
+			}
+			glPopMatrix();
+		}
+		glPopMatrix();
+	}
 	glPopMatrix();
 }
 
-void drawArm()
+void drawRightArm()
 {
 	drawShouder();
 	glPushMatrix();
-	glTranslated(0.5, -2, -0.75);
-	drawUpperArm();
+	{
+		glTranslated(0.5, -2, -0.75);
 
-	glPushMatrix();
-	glTranslated(0, 0, 0.5);
-	drawLowerArm();
+		glRotated(-VAL(RIGHT_ARM_Y_ROTATE), 0, 1.0, 0);
 
-	glPushMatrix();
-	glTranslated(-0.2, -0.5, (0.5 + 0.7 + 1) * 2.5 * 0.4);
-	drawHand();
+		glTranslated(0, 2, 0);
+		glRotated(-VAL(RIGHT_ARM_Z_ROTATE), 0, 0, 1.0);
+		glTranslated(0, -2, 0);
 
-	glPushMatrix();
-	glTranslated(-0.25, -0.5, 0.6);
-	glPushMatrix();
-	glTranslated(0.15, 1.4, 1.7);
-	glTranslated(0.2, 0.5, 0.2);
-	drawFinger();
-	glPopMatrix();
+		drawUpperArm();
 
-	glPushMatrix();
-	glTranslated(0.15, 0.75, 1.7);
-	glTranslated(0.2, 0.5, 0.2);
-	drawFinger();
-	glPopMatrix();
+		glPushMatrix();
+		{
+			glTranslated(0, 0, 0.5);
+			glRotated(VAL(RIGHT_LOWER_ARM_ROTATE), 1, 0, 0);
 
-	glPushMatrix();
-	glTranslated(0.15, 0.1, 1.7);
-	glTranslated(0.2, 0.5, 0.2);
-	drawFinger();
-	glPopMatrix();
+			drawLowerArm();
 
-	glPushMatrix();
-	glTranslated(0.15, 0.1, 0.5);
-	glTranslated(1.2, 1.9, 0);
-	drawThumb();
-	glPopMatrix();
+			glPushMatrix();
+			{
+				glTranslated(-0.2, -0.5, (0.5 + 0.7 + 1) * 2.5 * 0.4);
 
-	glPopMatrix();
+				float ratio = VAL(ROCKET_GRAB) / 100.0;
 
-	glPopMatrix();
+				glTranslated(0.25, 0.25, 0);
+				setDiffuseColor(0.8f, 0.8f, 0.8f);
+				drawBox(0.5, 0.5, 10 * ratio);
+				glTranslated(-0.25, -0.25, 0);
+	
+				glTranslated(0,0, 10 * ratio);
 
-	glPopMatrix();
+				glTranslated(0.5, 0.5, 0);
+				int angle1 = VAL(RIGHT_HAND_ROTATE) + ratio * 90;
+				if (angle1 > 90)
+					angle1 = 90;
+				glRotated(-angle1, 0, 0, 1.0);
+				glRotated(-40 * ratio, 0, 1.0, 0);
+				glTranslated(-0.5, -0.5, 0);
 
+				drawHand();
+
+				glPushMatrix();
+				{
+					glTranslated(-0.25, -0.5, 0.6);
+					glPushMatrix();
+					{
+						glTranslated(0.15, 1.4, 1.7);
+						glTranslated(0.2, 0.5, 0.2);
+						drawFinger(RIGHT, 1);
+					}
+					glPopMatrix();
+
+					glPushMatrix();
+					{
+						glTranslated(0.15, 0.75, 1.7);
+						glTranslated(0.2, 0.5, 0.2);
+						drawFinger(RIGHT, 2);
+					}
+					glPopMatrix();
+
+					glPushMatrix();
+					{
+						glTranslated(0.15, 0.1, 1.7);
+						glTranslated(0.2, 0.5, 0.2);
+						drawFinger(RIGHT, 3);
+					}
+					glPopMatrix();
+
+					glPushMatrix();
+					{
+						glTranslated(0.15, 0.1, 0.5);
+						glTranslated(1.2, 1.9, 0);
+						drawThumb(RIGHT);
+					}
+					glPopMatrix();
+				}
+				glPopMatrix();
+			}
+			glPopMatrix();
+
+		}
+		glPopMatrix();
+	}
 	glPopMatrix();
 }
 // given a curve, draw the shape by rotating the curve 360'
@@ -450,7 +614,6 @@ void draw_curve_shape(float h, float(*curve)(float))
 // need push/pop matrix outside
 void drawBodyOut(float h)
 {
-
 		//glTranslated(10, -3, 0);
 	    setDiffuseColor(140 / 255.0, 243 / 255.0, 252 / 255.0);
 		glPushMatrix();
@@ -606,16 +769,31 @@ void RobotModel::draw()
 	  {
 		  glRotated(-90, 0, 1.0, 0);
 		  glTranslated(-4 - delta1, -1, 0);
-		  drawArm();
+		  glPushMatrix();
+		  {
+			  glTranslated(1.5, 0, -1);
+			  drawBox(2, 1, 1);
+		  }
+		  glPopMatrix();
+		  glRotated(VAL(LEFT_ARM_X_ROTATE), 1.0, 0, 0);
+		  drawRightArm();
 	  }
 	  glPopMatrix();
 
 	  glPushMatrix();
 	  {
 		  glRotated(-90, 0, 1.0, 0);
-		  glScaled(-1, 1, 1);
-		  glTranslated(-4 - delta1, -1, 0);
-		  drawArm();
+
+		  glTranslated(3.5+ delta1, -1, 0); 
+		  glPushMatrix();
+		  {
+			  glTranslated(-3, 0, -1);
+			  drawBox(2, 1, 1);
+		  }
+		  glPopMatrix();
+		  
+		  glRotated(VAL(RIGHT_ARM_X_ROTATE), 1.0, 0, 0);
+		  drawLeftArm();
 	  }
 	  glPopMatrix();
 	  
@@ -819,6 +997,39 @@ int main()
 	controls[LIGHT1_POS_Y] = ModelerControl("Light 1 source position Y", -100, 100, 1, -100);
 	controls[LIGHT1_POS_Z] = ModelerControl("Light 1 source position Z", -100, 100, 1, -100);
 	controls[LIGHT_INTENSITY] = ModelerControl("Light intensity", 0, 1, 0.01f, 1);
+
+	controls[LEFT_ARM_X_ROTATE] = ModelerControl("Left Arm Rotate X", -90, 90, 0.2f, 0);
+	controls[RIGHT_ARM_X_ROTATE] = ModelerControl("Right Arm Rotate X", -90, 90, 0.2f, 0);
+	controls[LEFT_ARM_Y_ROTATE] = ModelerControl("Left Arm Rotate Y", 0, 90, 0.2f, 0);
+	controls[RIGHT_ARM_Y_ROTATE] = ModelerControl("Right Arm Rotate Y", 0, 90, 0.2f, 0);
+	controls[LEFT_ARM_Z_ROTATE] = ModelerControl("Left Arm Rotate Z", 0, 90, 0.2f, 0);
+	controls[RIGHT_ARM_Z_ROTATE] = ModelerControl("Right Arm Rotate Z", 0, 90, 0.2f, 0);
+
+	controls[LEFT_LOWER_ARM_ROTATE] = ModelerControl("Left Lower Arm Rotate", -15, 90, 0.2f, 0);
+	controls[RIGHT_LOWER_ARM_ROTATE] = ModelerControl("Right Lower Arm Rotate", -15, 90, 0.2f, 0);
+
+	controls[ROCKET_GRAB] = ModelerControl("Ability: Rocket Grab", 0, 100, 1.0f, 0);
+
+	controls[LEFT_HAND_ROTATE] = ModelerControl("Left Hand Rotate", -90, 90, 0.2f, 0);
+	controls[RIGHT_HAND_ROTATE] = ModelerControl("Right Hand Rotate", -90, 90, 0.2f, 0);
+
+	controls[LEFT_THUMB_UP] = ModelerControl("Left Thumb Up", 0, 70, 0.2f, 0);
+	controls[RIGHT_THUMB_UP] = ModelerControl("Right Thumb Up", 0, 70, 0.2f, 0);
+
+	controls[LEFT_FINGER1_FIRST_JOINT_ROTATE] = ModelerControl("Left Finger1 First Joint Rotate", 0, 90, 0.2f, 0);
+	controls[LEFT_FINGER1_SECOND_JOINT_ROTATE] = ModelerControl("Left Finger1 Second Joint Rotate", 0, 90, 0.2f, 0);
+	controls[RIGHT_FINGER1_FIRST_JOINT_ROTATE] = ModelerControl("Right Finger1 First Joint Rotate", 0, 90, 0.2f, 0);
+	controls[RIGHT_FINGER1_SECOND_JOINT_ROTATE] = ModelerControl("Right Finger1 Second Joint Rotate", 0, 90, 0.2f, 0);
+
+	controls[LEFT_FINGER2_FIRST_JOINT_ROTATE] = ModelerControl("Left Finger2 First Joint Rotate", 0, 90, 0.2f, 0);
+	controls[LEFT_FINGER2_SECOND_JOINT_ROTATE] = ModelerControl("Left Finger2 Second Joint Rotate", 0, 90, 0.2f, 0);
+	controls[RIGHT_FINGER2_FIRST_JOINT_ROTATE] = ModelerControl("Right Finger2 First Joint Rotate", 0, 90, 0.2f, 0);
+	controls[RIGHT_FINGER2_SECOND_JOINT_ROTATE] = ModelerControl("Right Finger2 Second Joint Rotate", 0, 90, 0.2f, 0);
+
+	controls[LEFT_FINGER3_FIRST_JOINT_ROTATE] = ModelerControl("Left Finger3 First Joint Rotate", 0, 90, 0.2f, 0);
+	controls[LEFT_FINGER3_SECOND_JOINT_ROTATE] = ModelerControl("Left Finger3 Second Joint Rotate", 0, 90, 0.2f, 0);
+	controls[RIGHT_FINGER3_FIRST_JOINT_ROTATE] = ModelerControl("Right Finger3 First Joint Rotate", 0, 90, 0.2f, 0);
+	controls[RIGHT_FINGER3_SECOND_JOINT_ROTATE] = ModelerControl("Right Finger3 Second Joint Rotate", 0, 90, 0.2f, 0);
 
 	ModelerApplication::Instance()->Init(&createSampleModel, controls, NUMCONTROLS);
 	return ModelerApplication::Instance()->Run();
