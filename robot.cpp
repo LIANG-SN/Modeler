@@ -6,7 +6,9 @@
 #include <FL/gl.h>
 #include <cmath>
 #include "modelerglobals.h"
-
+#include "bitmap.h"
+#include <gl/glu.h>
+#include <FL/fl_ask.H>
 #ifndef M_PI
 #define M_PI 3.141592653589793238462643383279502
 #endif
@@ -24,6 +26,8 @@ public:
 		: ModelerView(x, y, w, h, label) { }
 
 	virtual void draw();
+private:
+	bool init{ false };
 };
 
 // We need to make a creator function, mostly because of
@@ -618,6 +622,7 @@ void drawBodyOut(float h)
 	    setDiffuseColor(140 / 255.0, 243 / 255.0, 252 / 255.0);
 		glPushMatrix();
 		glTranslated(-2, h / 2, 0);
+		glRotated(-75, 0, 0, 1); // show texture
 		drawSphere(h / 4.5);
 		glPopMatrix();
 
@@ -708,11 +713,53 @@ void drawBodyOut(float h)
 		glDisable(GL_CULL_FACE);
 }
 
+void init_texture()
+{
+	GLuint texture_id;
+
+	int w, h; // should be same
+	unsigned char* im = readBMP("P:/COMP4411/2_Modeler/Modeler/texture.bmp", w, h);
+	if (im == NULL)
+	{
+		fl_alert("Can't load bitmap file");
+		return;
+	}
+	/*unsigned char* im_scaled[512*512*4];
+	gluScaleImage(GL_RGB, w, h,
+		GL_UNSIGNED_BYTE, im, 512, 512,
+		GL_UNSIGNED_BYTE, im_scaled);*/
+	//delete[] im;
+	// enable textures
+	glEnable(GL_TEXTURE_2D);
+	glGenTextures(1, &texture_id);
+	glBindTexture(GL_TEXTURE_2D, texture_id);
+	// sample: specify texture parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
+	// set the active texture
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 512, 512, 0, GL_RGB, GL_UNSIGNED_BYTE, im);
+	//delete[] im;
+	if(glGetError() != GL_NO_ERROR)
+		fl_alert("%d", glGetError());
+	
+	
+}
 
 // We are going to override (is that the right word?) the draw()
 // method of ModelerView to draw out SampleModel
 void RobotModel::draw()
 {
+	if (!init)
+	{
+		init_texture();
+		init = true;
+	}
+	if (VAL(TEXTURE_MAPPING) == 1)
+		glEnable(GL_TEXTURE_2D);
+	else
+		glDisable(GL_TEXTURE_2D);
+
 	// This call takes care of a lot of the nasty projection 
 	// matrix stuff.  Unless you want to fudge directly with the 
 	// projection matrix, don't bother with this ...
@@ -735,13 +782,15 @@ void RobotModel::draw()
 	setDiffuseColor(COLOR_RED);
 	glPushMatrix();
 	glTranslated(-25, -8, -25);
-	drawBox(50, 0.01f, 50);
+	drawTextureBox(50, 0.01f, 50);
 	glPopMatrix();
 
 
 	// draw the model
 	setDiffuseColor(0.5f, 0.5f, 0);
 
+	//drawSphere(3);
+	glPopMatrix();
 	// parameters
 	float r1 = 3; // r of the body
 	float h_head = 1.8;
@@ -772,7 +821,7 @@ void RobotModel::draw()
 		  glPushMatrix();
 		  {
 			  glTranslated(1.5, 0, -1);
-			  drawBox(2, 1, 1);
+			  drawTextureBox(2, 1, 1);
 		  }
 		  glPopMatrix();
 		  glRotated(VAL(LEFT_ARM_X_ROTATE), 1.0, 0, 0);
@@ -788,7 +837,7 @@ void RobotModel::draw()
 		  glPushMatrix();
 		  {
 			  glTranslated(-3, 0, -1);
-			  drawBox(2, 1, 1);
+			  drawTextureBox(2, 1, 1);
 		  }
 		  glPopMatrix();
 		  
@@ -897,7 +946,7 @@ void RobotModel::draw()
 			  // left leg
 			  glTranslated(-0.6, -h_middle - h_leg, -leg_width / 2 + 1.1);
 			  glRotated(20, 0, 1, 0);
-			  drawBox(leg_width, h_leg, leg_width);
+			  drawTextureBox(leg_width, h_leg, leg_width);
 			  glPushMatrix();
 			  {
 				  // feet
@@ -922,7 +971,7 @@ void RobotModel::draw()
 			  // right leg
 			  glTranslated(-0.6, -h_middle- h_leg, -leg_width / 2  -1.1);
 			  glRotated(-20, 0, 1, 0);
-			  drawBox(leg_width, h_leg, leg_width);
+			  drawTextureBox(leg_width, h_leg, leg_width);
 
 			  // feet
 			  glRotated(VAL(RIGHT_FEET_ROTATE), 0, 0, 1);
@@ -980,10 +1029,12 @@ void RobotModel::draw()
 
 int main()
 {
+	
 	// Initialize the controls
 	// Constructor is ModelerControl(name, minimumvalue, maximumvalue, 
 	// stepsize, defaultvalue)
 	ModelerControl controls[NUMCONTROLS];
+	controls[TEXTURE_MAPPING] = ModelerControl("Texture Mapping", 0, 1, 1, 0);
 	controls[XPOS] = ModelerControl("X Position", -5, 5, 0.1f, 0);
 	controls[YPOS] = ModelerControl("Y Position", -5, 5, 0.1f, 0);
 	controls[ZPOS] = ModelerControl("Z Position", -5, 5, 0.1f, 0);
@@ -1031,6 +1082,8 @@ int main()
 	controls[RIGHT_FINGER3_FIRST_JOINT_ROTATE] = ModelerControl("Right Finger3 First Joint Rotate", 0, 90, 0.2f, 0);
 	controls[RIGHT_FINGER3_SECOND_JOINT_ROTATE] = ModelerControl("Right Finger3 Second Joint Rotate", 0, 90, 0.2f, 0);
 
+
 	ModelerApplication::Instance()->Init(&createSampleModel, controls, NUMCONTROLS);
+	
 	return ModelerApplication::Instance()->Run();
 }
