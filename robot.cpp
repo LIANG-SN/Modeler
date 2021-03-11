@@ -393,8 +393,157 @@ void drawArm()
 
 	glPopMatrix();
 }
+// given a curve, draw the shape by rotating the curve 360'
+void draw_curve_shape(float h, float(*curve)(float))
+{
+	const int h_sample = 300;
+	float v[360][h_sample][3];
 
+	for (int i = 0; i < h_sample; i++)
+	{
+		v[0][i][0] = 0;
+		v[0][i][1] = h * i / (h_sample - 1);
+		v[0][i][2] = curve(h * i / h_sample);
+	}
+	for (int theta = 1; theta < 360; theta++)
+	{
+		for (int i = 0; i < h_sample; i++)
+		{
+			v[theta][i][0] = v[0][i][2] * sinf(theta / 360.0 * 2 * M_PI);
+			v[theta][i][1] = h * i / h_sample;
+			v[theta][i][2] = v[0][i][2] * cosf(theta / 360.0 * 2 * M_PI);
+		}
+	}
 
+	for (int t = 0; t < 359; t += 1)
+	{
+		for (int i = 0; i < h_sample - 1; i++)
+		{
+			glBegin(GL_TRIANGLES);
+			glVertex3fv(v[t][i]);
+			glVertex3fv(v[t + 1][i]);
+			glVertex3fv(v[t][i + 1]);
+			glEnd();
+			glBegin(GL_TRIANGLES);
+			glVertex3fv(v[t + 1][i + 1]);
+			glVertex3fv(v[t][i + 1]);
+			glVertex3fv(v[t + 1][i]);
+			glEnd();
+
+		}
+	}
+	// the 359 to 0
+	for (int i = 0; i < h_sample - 1; i++)
+	{
+		glBegin(GL_TRIANGLES);
+		glVertex3fv(v[359][i]);
+		glVertex3fv(v[0][i]);
+		glVertex3fv(v[359][i + 1]);
+		glEnd();
+		glBegin(GL_TRIANGLES);
+		glVertex3fv(v[0][i + 1]);
+		glVertex3fv(v[359][i + 1]);
+		glVertex3fv(v[0][i]);
+		glEnd();
+	}
+}
+// need push/pop matrix outside
+void drawBodyOut(float h)
+{
+
+		//glTranslated(10, -3, 0);
+	    setDiffuseColor(140 / 255.0, 243 / 255.0, 252 / 255.0);
+		glPushMatrix();
+		glTranslated(-2, h / 2, 0);
+		drawSphere(h / 4.5);
+		glPopMatrix();
+
+		const int h_sample = 100;
+		float v[360][h_sample][3];
+		// float h = 6;
+		for (int i = 0; i < h_sample; i++)
+		{
+			v[0][i][0] = 0;
+			v[0][i][1] = h * i / (h_sample - 1);
+			v[0][i][2] = 3.5 - (h * i / h_sample - 3) * (h * i / h_sample - 3) * 2.0 / 9;
+		}
+		for (int theta = 1; theta < 360; theta++)
+		{
+			for (int i = 0; i < h_sample; i++)
+			{
+				v[theta][i][0] = v[0][i][2] * sinf(theta / 360.0 * 2 * M_PI);
+				v[theta][i][1] = h * i / h_sample;
+				v[theta][i][2] = v[0][i][2] * cosf(theta / 360.0 * 2 * M_PI);
+			}
+		}
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
+		setDiffuseColor(0.5f, 0.5f, 0);
+		for (int t = 0; t < 359; t += 1)
+		{
+			for (int i = 0; i < h_sample - 1; i++)
+			{
+				if ((t - 270) * (t - 270) / 625.0 + (i - h_sample / 2.0) * (i - h_sample / 2.0) / 625 < 1)
+					continue;
+
+				// draw outside
+				
+
+				glBegin(GL_TRIANGLES);
+				glVertex3fv(v[t][i]);
+				glVertex3fv(v[t + 1][i]);
+				glVertex3fv(v[t][i + 1]);
+				glEnd();
+				glBegin(GL_TRIANGLES);
+				glVertex3fv(v[t + 1][i + 1]);
+				glVertex3fv(v[t][i + 1]);
+				glVertex3fv(v[t + 1][i]);
+				glEnd();
+
+			}
+		}
+		for (int t = 1; t < 359; t++)
+		{
+			for (int i = 0; i < h_sample - 1; i++)
+			{
+				// inside 
+				if (t % 2 == 0)
+					setDiffuseColor(0, 0, 0);
+				else
+					setDiffuseColor(0.2, 0.2, 0.2);
+
+				glBegin(GL_TRIANGLES);
+				glVertex3fv(v[t][i]);
+				glVertex3fv(v[t][i + 1]);
+				glVertex3fv(v[t + 1][i]);
+				glEnd();
+				glBegin(GL_TRIANGLES);
+				glVertex3fv(v[t + 1][i + 1]);
+				glVertex3fv(v[t + 1][i]);
+				glVertex3fv(v[t][i + 1]);
+				glEnd();
+			}
+		}
+
+		// the 359 to 0
+		for (int i = 0; i < h_sample - 1; i++)
+		{
+			setDiffuseColor(0.5f, 0.5f, 0);
+			glBegin(GL_TRIANGLES);
+			glVertex3fv(v[359][i]);
+			glVertex3fv(v[0][i]);
+			glVertex3fv(v[359][i + 1]);
+			glEnd();
+			glBegin(GL_TRIANGLES);
+			glVertex3fv(v[0][i + 1]);
+			glVertex3fv(v[359][i + 1]);
+			glVertex3fv(v[0][i]);
+			glEnd();
+
+		}
+		setDiffuseColor(0.5f, 0.5f, 0);
+		glDisable(GL_CULL_FACE);
+}
 
 
 // We are going to override (is that the right word?) the draw()
@@ -428,36 +577,35 @@ void RobotModel::draw()
 
 
 	// draw the model
-	setAmbientColor(.1f, .1f, .1f);
 	setDiffuseColor(0.5f, 0.5f, 0);
 
 	// parameters
 	float r1 = 3; // r of the body
 	float h_head = 1.8;
 	float r_top = 1.5, r_bottom = 2;
-	float h_middle = 0.8;
-	float h_bottom = 2.5;
-	float h_top = 2;
+	float h_middle = 6;
+	float h_bottom = 1.5;
+	float h_top = 1;
 	float h_leg = 1.8;
 	float h_feet = 0.8;
-	float body_width_scale = 1.2;
+	float body_width_scale = 1;
 	float body_depth_scale = 0.8;
 
 	glPushMatrix();
 	{
 	    // middle body
 	  glScaled(body_depth_scale, 1, body_width_scale);
-	  glTranslated(VAL(XPOS), h_bottom+h_feet+h_leg+h_middle + VAL(YPOS), VAL(ZPOS));
-	  glRotated(90, 1, 0, 0);
-	  drawCylinder(h_middle, r1, r1);
-	  glRotated(-90, 1, 0, 0);
+	  glTranslated(VAL(XPOS), h_bottom+h_feet+h_leg + VAL(YPOS), VAL(ZPOS));
+	  glTranslated(0, -h_middle, 0);
+	  drawBodyOut(h_middle);
+	  glTranslated(0, h_middle, 0);
 	  glScaled(1 / body_depth_scale, 1, 1 / body_width_scale);
 	  
 	  float delta1 = 1.5;
 	  glPushMatrix();
 	  {
 		  glRotated(-90, 0, 1.0, 0);
-		  glTranslated(-h_top- r_bottom-delta1, 0, 0);
+		  glTranslated(-4 - delta1, -1, 0);
 		  drawArm();
 	  }
 	  glPopMatrix();
@@ -466,20 +614,13 @@ void RobotModel::draw()
 	  {
 		  glRotated(-90, 0, 1.0, 0);
 		  glScaled(-1, 1, 1);
-		  glTranslated(-h_top - r_bottom - delta1, 0, 0);
+		  glTranslated(-4 - delta1, -1, 0);
 		  drawArm();
 	  }
 	  glPopMatrix();
 	  
 	  glPushMatrix();
 	  {
-		  // top body
-		  glScaled(body_depth_scale, 1, body_width_scale);
-		  glTranslated(0, h_top, 0);
-		  glRotated(90, 1, 0, 0);
-		  drawCylinder(h_top, r_top, r1);
-		  glRotated(-90, 1, 0, 0);
-		  glScaled(1 / body_depth_scale, 1, 1/body_width_scale);
 		  // head
 		  float diff = 0.12;
 	      float w_head = 2.2;
@@ -570,19 +711,13 @@ void RobotModel::draw()
 	  glPopMatrix();
 	  glPushMatrix();
 	  {
-		  // bottom body
-		  glScaled(body_depth_scale, 1, body_width_scale);
-		  glTranslated(0, -h_middle, 0);
-		  glRotated(90, 1, 0, 0);
-		  drawCylinder(h_bottom, r1, r_bottom);
-		  glRotated(-90, 1, 0, 0);
-		  glScaled(1 / body_depth_scale, 1, 1/ body_width_scale);
+		  //// bottom body
 
 		  float leg_width = 0.9;
 		  glPushMatrix();
 		  {
 			  // left leg
-			  glTranslated(-0.6, -h_bottom - h_leg, -leg_width / 2 + 1.1);
+			  glTranslated(-0.6, -h_middle - h_leg, -leg_width / 2 + 1.1);
 			  glRotated(20, 0, 1, 0);
 			  drawBox(leg_width, h_leg, leg_width);
 			  glPushMatrix();
@@ -607,7 +742,7 @@ void RobotModel::draw()
 		  glPushMatrix();
 		  {
 			  // right leg
-			  glTranslated(-0.6, -h_bottom - h_leg, -leg_width / 2  -1.1);
+			  glTranslated(-0.6, -h_middle- h_leg, -leg_width / 2  -1.1);
 			  glRotated(-20, 0, 1, 0);
 			  drawBox(leg_width, h_leg, leg_width);
 
@@ -628,26 +763,7 @@ void RobotModel::draw()
 		  glPopMatrix();
 	  }
 	  glPopMatrix();
-	  glPushMatrix();
-	  {
-		  float r_front = r1 - 1.5;
-		  // front body
-	      glTranslated(-r1 * body_depth_scale, -0.5, 0);
-	      glRotated(90, 0, 1, 0);
-	      drawCylinder(0.5, r_front, r_front);
-		  glLineWidth(5);
-		  glBegin(GL_LINE_STRIP);
-		  setAmbientColor(.1f, .1f, .1f);
-		  setDiffuseColor(0, 0, 0);
-		  glVertex3d(0, r_front, -0.3);
-		  glVertex3d(r_front / 3, r_front / 2, -0.1 );
-		  glVertex3d(-r_front / 3, -r_front / 2, -0.1);
-		  glVertex3d(0, -r_front, -0.1);
-		  glEnd();
-		  setAmbientColor(.1f, .1f, .1f);
-		  setDiffuseColor(0.5f, 0.5f, 0);
-	  }
-	  glPopMatrix();
+
 	  glPushMatrix();
 	  int h = r1 + 2, h2 = 2.5;
 	  {
