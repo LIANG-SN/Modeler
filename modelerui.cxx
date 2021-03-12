@@ -253,6 +253,9 @@ inline void ModelerUserInterface::cb_Frame_All_i(Fl_Menu_*, void*) {
 		d -= 8 * (leftZRotate + leftLowerRotate) / 180;
 	else if (rightZRotate > 45 && rightLowerRotate > 45)
 		d -= 8 * (rightZRotate + rightLowerRotate) / 180;
+
+	if (VAL(LASING) == 1)
+		d = -100;
 	m_modelerView->m_camera->setDolly(d);
 
 	m_modelerView->redraw();

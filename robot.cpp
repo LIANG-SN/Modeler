@@ -502,6 +502,7 @@ void drawLeftArm()
 	glPushMatrix();
 	{
 		glScaled(-1, 1, 1);
+		setDiffuseColor(1, 1, 0);
 		drawShouder();
 		glPushMatrix();
 		{
@@ -598,6 +599,7 @@ void drawLeftArm()
 
 void drawRightArm()
 {
+	setDiffuseColor(1, 1, 0);
 	drawShouder();
 	glPushMatrix();
 	{
@@ -701,6 +703,70 @@ void drawRightArm()
 	}
 	glPopMatrix();
 }
+
+void drawJetting()
+{
+	srand(0);
+	setDiffuseColor(1, 1, 1);
+	glPushMatrix();
+	glScaled(0.5, 0.5, 0.5);
+	glRotated(90, 0, 1, 0);
+	glRotated(-90, 0, 0, 1);
+	for (int i = 0; i < 8; i++)
+	{
+		glPushMatrix();
+		{
+			glTranslated(0, i / 2, 0);
+			for (int a = 0; a < i + 1; a++)
+			{
+				for (int b = 0; b < i ; b++)
+				{
+					glPushMatrix();
+					{
+						glTranslated(i / 2 * b / i * cos(M_PI * a / i), -(rand() % 6 - 3) / 2, i / 2 * b / i * sin(M_PI * a / i));
+						glTranslated((rand() % 6-3)/2, (rand() % 6-3) /2 , (rand() % 3 - 3) / 2);
+						drawSphere((rand() % 5+1)/3);
+					}
+					glPopMatrix();
+				}
+			}
+		}
+		glPopMatrix();
+	}
+	glPopMatrix();
+
+	glPushMatrix();
+	glScaled(-0.5, 0.5, 0.5);
+	glRotated(90, 0, 1, 0);
+	glRotated(-90, 0, 0, 1);
+	for (int i = 0; i < 8; i++)
+	{
+		glPushMatrix();
+		{
+			glTranslated(0, i / 2, 0);
+			for (int a = 0; a < i + 1; a++)
+			{
+				for (int b = 0; b < i; b++)
+				{
+					glPushMatrix();
+					{
+						glTranslated(i / 2 * b / i * cos(M_PI * a / i), -(rand() % 6 - 3) / 2, i / 2 * b / i * sin(M_PI * a / i));
+						glTranslated((rand() % 6 - 3) / 2, (rand() % 6 - 3) / 2, (rand() % 3 - 3) / 2);
+						drawSphere((rand() % 5 + 1) / 3);
+					}
+					glPopMatrix();
+				}
+			}
+		}
+		glPopMatrix();
+	}
+	glPopMatrix();
+
+
+}
+
+
+
 // given a curve, draw the shape by rotating the curve 360'
 void draw_curve_shape(float h, float(*curve)(float))
 {
@@ -756,6 +822,9 @@ void draw_curve_shape(float h, float(*curve)(float))
 	}
 }
 // need push/pop matrix outside
+
+void drawCircleRing();
+
 void drawBodyOut(float h)
 {
 		//glTranslated(10, -3, 0);
@@ -764,6 +833,27 @@ void drawBodyOut(float h)
 		glTranslated(-2, h / 2, 0);
 		glRotated(-75, 0, 0, 1); // show texture
 		drawSphere(h / 4.5);
+		if (VAL(LASING) == 1)
+		{
+			glPushMatrix();
+			{
+				const float inf = 10;
+				glRotated(-90, 0, 1, 0);
+				drawCylinder(4*inf+2, 1.5, 1.5);
+				glRotated(90, 0, 1, 0);
+
+				glRotated(90, 0, 0, 1);
+
+				glPushMatrix();
+				for (int i = 0; i < 6; i++)
+				{
+					glTranslated(0, 0.7 * i + 3, 0);
+					drawCircleRing();
+				}
+				glPopMatrix();
+			}
+			glPopMatrix();
+		}
 		glPopMatrix();
 
 		const int h_sample = 100;
@@ -886,6 +976,27 @@ void init_texture()
 	
 }
 
+
+void drawCircleRing()
+{
+	setDiffuseColor(140 / 255.0, 243 / 255.0, 252 / 255.0);
+	float r = 0.25f;
+	float R =2.0f;
+	float delta = M_PI / 180;
+	for (float angle = 0; angle < 2*M_PI; angle+=delta)
+	{
+		float s = sin(angle); float c = cos(angle);
+		glPushMatrix();
+		{
+			glTranslated(c*R,0, s*R );
+			glRotated(angle, 0, 1, 0);
+			drawCylinder(delta*R, r, r);
+		}
+		glPopMatrix();
+	}
+}
+
+
 // We are going to override (is that the right word?) the draw()
 // method of ModelerView to draw out SampleModel
 void RobotModel::draw()
@@ -963,9 +1074,14 @@ void RobotModel::draw()
 			glScaled(body_depth_scale, 1, body_width_scale);
 
 			glTranslated(0, -h_middle, 0);
+			setDiffuseColor(0.5, 0.5, 0);
 			drawBodyOut(h_middle);
 			glTranslated(0, h_middle, 0);
 			glScaled(1 / body_depth_scale, 1, 1 / body_width_scale);
+
+
+
+
 
 			float delta1 = 1.5;
 			glPushMatrix();
@@ -974,6 +1090,7 @@ void RobotModel::draw()
 				glTranslated(-4 - delta1, -1, 0);
 				glPushMatrix();
 				{
+					setDiffuseColor(1, 1, 0);
 					glTranslated(1.5, 0, -1);
 					drawBox(2, 1, 1);
 				}
@@ -990,6 +1107,7 @@ void RobotModel::draw()
 				glTranslated(4 + delta1, -1, 0);
 				glPushMatrix();
 				{
+					setDiffuseColor(1, 1, 0);
 					glTranslated(-3.5, 0, -1);
 					drawBox(2, 1, 1);
 				}
@@ -1015,7 +1133,7 @@ void RobotModel::draw()
 
 					glPushMatrix();
 					{
-
+						setDiffuseColor(1, 1, 0);
 						// left head
 						float v[10][3] =
 						{
@@ -1153,6 +1271,10 @@ void RobotModel::draw()
 				glTranslated(r1 * body_depth_scale, r1 / 2 + 2, -2);
 				glRotated(90, 1, 0, 0);
 				drawCylinder(h, 0.35, 0.35);
+
+				if (VAL(JETTING) == 1)
+					drawJetting();
+				setDiffuseColor(0.5, 0.5, 0);
 				glPushMatrix();
 				{
 					// jet header
@@ -1161,12 +1283,19 @@ void RobotModel::draw()
 				glPopMatrix();
 			}
 			glPopMatrix();
+
 			glPushMatrix();
 			{
 				// right jet
 				glTranslated(r1 * body_depth_scale, r1 / 2 + 2, 2);
 				glRotated(90, 1, 0, 0);
 				drawCylinder(h, 0.35, 0.35);
+
+				if(VAL(JETTING)==1)
+					drawJetting();
+
+
+				setDiffuseColor(0.5, 0.5, 0);
 				glPushMatrix();
 				{
 					// jet header
@@ -1238,6 +1367,10 @@ int main()
 	controls[RIGHT_FINGER3_SECOND_JOINT_ROTATE] = ModelerControl("Right Finger3 Second Joint Rotate", 0, 90, 0.2f, 0);
 
 	controls[CHANGE_HAND] = ModelerControl("Change Hands", 0, 1, 1, 0);
+	controls[JETTING] = ModelerControl("Jetting", 0, 1, 1, 0);
+
+	controls[LASING] = ModelerControl("Lasing!", 0, 1, 1, 0);
+
 
 	ModelerApplication::Instance()->Init(&createSampleModel, controls, NUMCONTROLS);
 	
