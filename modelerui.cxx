@@ -239,6 +239,30 @@ void ModelerUserInterface::cb_Focus(Fl_Menu_* o, void* v) {
 	((ModelerUserInterface*)(o->parent()->user_data()))->cb_Focus_i(o,v);
 }
 
+inline void ModelerUserInterface::cb_Frame_All_i(Fl_Menu_*, void*) {
+
+
+	m_modelerView->m_camera->setLookAt(Vec3f(VAL(XPOS), VAL(YPOS), VAL(ZPOS)));
+
+	float d = -23.0f;
+	int leftZRotate = VAL(LEFT_ARM_Z_ROTATE);
+	int rightZRotate= VAL(RIGHT_ARM_Z_ROTATE);
+	int leftLowerRotate = VAL(LEFT_LOWER_ARM_ROTATE);
+	int rightLowerRotate = VAL(RIGHT_LOWER_ARM_ROTATE);
+	if (leftZRotate > 45 && leftLowerRotate > 45)
+		d -= 8 * (leftZRotate + leftLowerRotate) / 180;
+	else if (rightZRotate > 45 && rightLowerRotate > 45)
+		d -= 8 * (rightZRotate + rightLowerRotate) / 180;
+	m_modelerView->m_camera->setDolly(d);
+
+	m_modelerView->redraw();
+
+}
+void ModelerUserInterface::cb_Frame_All(Fl_Menu_* o, void* v) {
+	((ModelerUserInterface*)(o->parent()->user_data()))->cb_Frame_All_i(o, v);
+}
+
+
 inline void ModelerUserInterface::cb_m_controlsAnimOnMenu_i(Fl_Menu_*, void*) {
   ModelerApplication::Instance()->m_animating = (m_controlsAnimOnMenu->value() == 0) ? false : true;
 }
@@ -263,7 +287,8 @@ Fl_Menu_Item ModelerUserInterface::menu_m_controlsMenuBar[] = {
  {"Low Quality", 0,  (Fl_Callback*)ModelerUserInterface::cb_Low, 0, 8, 0, 0, 14, 0},
  {"Poor Quality", 0,  (Fl_Callback*)ModelerUserInterface::cb_Poor, 0, 136, 0, 0, 14, 0},
  {"Focus on Origin", 0,  (Fl_Callback*)ModelerUserInterface::cb_Focus, 0, 0, 0, 0, 14, 0},
- {0},
+  {"Frame All", 0,  (Fl_Callback*)ModelerUserInterface::cb_Frame_All, 0, 0, 0, 0, 14, 0},
+{0},
  {"Animate", 0,  0, 0, 64, 0, 0, 14, 0},
  {"Enable", 0,  (Fl_Callback*)ModelerUserInterface::cb_m_controlsAnimOnMenu, 0, 2, 0, 0, 14, 0},
  {0},

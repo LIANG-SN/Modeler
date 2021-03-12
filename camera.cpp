@@ -109,6 +109,8 @@ Camera::Camera()
 	mLookAt = Vec3f( 0, 0, 0 );
 	mCurrentMouseAction = kActionNone;
 
+	mPosition = Vec3f(0, 0, 0);
+
 	calculateViewingTransformParameters();
 }
 
