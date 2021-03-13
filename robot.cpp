@@ -496,7 +496,7 @@ void drawGripper()
 	glPopMatrix();
 }
 
-
+void drawCircleRingOnBody(float r, float R);
 
 void drawLeftArm()
 {
@@ -505,6 +505,21 @@ void drawLeftArm()
 		glScaled(-1, 1, 1);
 		setDiffuseColor(1, 1, 0);
 		drawShouder();
+		// rings
+		glPushMatrix();
+		{
+			glRotated(-45, 0, 0, 1);
+			glTranslated(-0.5, 2, -0.5);
+			drawCircleRingOnBody(0.25, 0.8);
+		}
+		glPopMatrix();
+		glPushMatrix();
+		{
+			glRotated(-45, 0, 0, 1);
+			glTranslated(-1, 0.5, -0.5);
+			drawCircleRingOnBody(0.25, 0.8);
+		}
+		glPopMatrix();
 		glPushMatrix();
 		{
 			glTranslated(0.5, -2, -0.75);
@@ -602,6 +617,21 @@ void drawRightArm()
 {
 	setDiffuseColor(1, 1, 0);
 	drawShouder();
+	// rings
+	glPushMatrix();
+	{
+		glRotated(-45, 0, 0, 1);
+		glTranslated(-0.5, 2, -0.5);
+		drawCircleRingOnBody(0.25, 0.8);
+	}
+	glPopMatrix();
+	glPushMatrix();
+	{
+		glRotated(-45, 0, 0, 1);
+		glTranslated(-1, 0.5, -0.5);
+		drawCircleRingOnBody(0.25, 0.8);
+	}
+	glPopMatrix();
 	glPushMatrix();
 	{
 		glTranslated(0.5, -2, -0.75);
@@ -822,9 +852,52 @@ void draw_curve_shape(float h, float(*curve)(float))
 		glEnd();
 	}
 }
+// draw curve 1 along curve 2
+// curve 1 will be assigned to xy plane, curve 2 will be assigned to zy plane
+void draw_extruded_surface(float(*curve1)(float), float(*curve2)(float), 
+	float range1 = 5, float range2 = 5)
+{
+	float sampleX = range1 * 50, sampleZ = range2 * 50;
+	float*** v = new float**[sampleX];
+	for (int i = 0; i < sampleX; i++)
+	{
+		v[i] = new float*[sampleZ];
+		for (int j = 0; j < sampleZ; j++)
+			v[i][j] = new float[3];
+	}
+	for (int i = 0; i < sampleX; i++)
+	{
+		for (int j = 0; j < sampleZ; j++)
+		{
+			v[i][j][0] = range1 * i / sampleX;
+			v[i][j][2] = range2 * j / sampleZ;
+			v[i][j][1] = curve1(v[i][j][0]) + curve2(v[i][j][2]);
+		}
+	}
+	for (int t = 0; t < sampleX - 1; t += 1)
+	{
+		for (int i = 0; i < sampleZ - 1; i++)
+		{
+			glBegin(GL_QUADS);
+			glVertex3fv(v[t][i]);
+			glVertex3fv(v[t + 1][i]);
+			glVertex3fv(v[t + 1][i + 1]);
+			glVertex3fv(v[t][i + 1]);
+			glEnd();
+		}
+	}
+	for (int i = 0; i < sampleX; i++)
+	{
+		for (int j = 0; j < sampleZ; j++)
+			delete[] v[i][j];
+		delete[] v[i];
+	}
+	delete[] v;
+}
 // need push/pop matrix outside
 
 void drawCircleRing();
+void drawCircleRingOnBody(float r, float R);
 
 void drawBodyOut(float h)
 {
@@ -832,7 +905,9 @@ void drawBodyOut(float h)
 	    setDiffuseColor(140 / 255.0, 243 / 255.0, 252 / 255.0);
 		glPushMatrix();
 		glTranslated(-2, h / 2, 0);
+		glPushMatrix();
 		glRotated(-75, 0, 0, 1); // show texture
+		glPopMatrix();
 		drawSphere(h / 4.5);
 		if (VAL(LASING) == 1)
 		{
@@ -877,7 +952,7 @@ void drawBodyOut(float h)
 		}
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
-		setDiffuseColor(0.5f, 0.5f, 0);
+		
 		for (int t = 0; t < 359; t += 1)
 		{
 			for (int i = 0; i < h_sample - 1; i++)
@@ -886,7 +961,10 @@ void drawBodyOut(float h)
 					continue;
 
 				// draw outside
-				
+				if(i % 25 == 0)
+					setDiffuseColor(0.1f, 0.1f, 0.1f);
+				else
+					setDiffuseColor(0.5f, 0.5f, 0);
 
 				glBegin(GL_TRIANGLES);
 				glVertex3fv(v[t][i]);
@@ -940,8 +1018,26 @@ void drawBodyOut(float h)
 			glEnd();
 
 		}
-		setDiffuseColor(0.5f, 0.5f, 0);
 		glDisable(GL_CULL_FACE);
+		glPushMatrix();
+		{
+			setDiffuseColor(0.2f, 0.2f, 0.2f);
+			glRotated(-30, 0, 1, 0);
+			glRotated(-90, 1, 0, 0);
+			glTranslated(-2.5, 0.5, 5);
+			drawCircleRingOnBody(0.3, 1.2);
+		}
+		glPopMatrix();
+		glPushMatrix();
+		{
+			setDiffuseColor(0.2f, 0.2f, 0.2f);
+			glRotated(30, 0, 1, 0);
+			glRotated(-90, 1, 0, 0);
+			glTranslated(-2.5, -1, 5);
+			drawCircleRingOnBody(0.3, 1.2);
+		}
+		glPopMatrix();
+		setDiffuseColor(0.5f, 0.5f, 0);
 }
 
 void init_texture()
@@ -996,11 +1092,51 @@ void drawCircleRing()
 		glPopMatrix();
 	}
 }
+void drawCircleRingOnBody(float r, float R)
+{
+	float delta = M_PI / 180 / 2;
+	for (float angle = 0; angle < 2 * M_PI; angle += delta)
+	{
+		int d = angle / M_PI * 180;
+		if (d % 10 == 0)
+			setDiffuseColor(0, 0, 0);
+		else
+			setDiffuseColor(0.1, 0.1, 0.1);
+		float s = sin(angle); float c = cos(angle);
+		glPushMatrix();
+		{
+			glTranslated(c * R, 0, s * R);
+			glRotated(angle, 0, 1, 0);
+			drawCylinder(delta * R, r, r);
+		}
+		glPopMatrix();
+	}
+	setDiffuseColor(0.5f, 0.5f, 0);
+}
+void draw_shoulder_up_helper()
+{
+	float currentColor[4];
+	glGetFloatv(GL_DIFFUSE, currentColor);
+	glScaled(0.9, 1, 1);
+	for (int i = 0; i < 40; i++)
+	{
+		glTranslated(0, 0.01, 0);
+		draw_extruded_surface([](float x) {return (2.25f - (x - 1.5f) * (x - 1.5f)) / 2.25f; },
+			[](float z) {return 0.0f; }, 3, 1);
+	}
+	
+}
+
+
+
+// We are going to override (is that the right word?) the draw()
+// method of ModelerView to draw out SampleModel
 
 
 
 void drawRobot()
 {
+
 	// draw the floor
 	setAmbientColor(.1f, .1f, .1f);
 	setDiffuseColor(COLOR_RED);
@@ -1013,12 +1149,13 @@ void drawRobot()
 
 	glPopMatrix();
 
+	
 
 	// draw the model
 	setDiffuseColor(0.5f, 0.5f, 0);
 
 	//drawSphere(3);
-	glPopMatrix();
+	//glPopMatrix();
 	// parameters
 	float r1 = 3; // r of the body
 	float h_head = 1.8;
@@ -1032,19 +1169,20 @@ void drawRobot()
 	float body_depth_scale = 0.8;
 
 
+
+		glPushMatrix();
+		{
+					// middle body
+
 	glTranslated(VAL(XPOS), h_bottom + h_feet + h_leg + VAL(YPOS), VAL(ZPOS));
 	glRotated(90, 0, 1, 0);
 	glTranslated(0, -3, 0);
 	glScaled(0.6, 0.6, 0.6);
 
 
-	glPushMatrix();
-	{
-		// middle body
+			glScaled(body_depth_scale, 1, body_width_scale);
 
 
-
-		glScaled(body_depth_scale, 1, body_width_scale);
 
 		glTranslated(0, -h_middle, 0);
 		setDiffuseColor(0.5, 0.5, 0);
@@ -1052,8 +1190,25 @@ void drawRobot()
 		glTranslated(0, h_middle, 0);
 		glScaled(1 / body_depth_scale, 1, 1 / body_width_scale);
 
+			glPushMatrix();
+			{
+				// up shoulder right
+				glRotated(20, 1, 0, 0);
+				glTranslated(-1.3, 0, 1.5);
+				setDiffuseColor(0.2, 0.2, 0.2);
+				draw_shoulder_up_helper();
+			}
+			glPopMatrix();
 
-
+			glPushMatrix();
+			{
+				// up shoulder left
+				glRotated(-20, 1, 0, 0);
+				glTranslated(-1.3, 0, -2);
+				setDiffuseColor(0.2, 0.2, 0.2);
+				draw_shoulder_up_helper();
+			}
+			glPopMatrix();
 
 
 		float delta1 = 1.5;
