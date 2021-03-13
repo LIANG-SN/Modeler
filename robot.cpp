@@ -5,6 +5,7 @@
 #include "modelerdraw.h"
 #include <FL/gl.h>
 #include <cmath>
+#include <cstring>
 #include "modelerglobals.h"
 #include "bitmap.h"
 #include <gl/glu.h>
@@ -948,7 +949,7 @@ void init_texture()
 	GLuint texture_id;
 
 	int w, h; // should be same
-	unsigned char* im = readBMP("P:/COMP4411/2_Modeler/Modeler/texture.bmp", w, h);
+	unsigned char* im = readBMP("./texture.bmp", w, h);
 	if (im == NULL)
 	{
 		fl_alert("Can't load bitmap file");
@@ -997,6 +998,625 @@ void drawCircleRing()
 }
 
 
+
+void drawRobot()
+{
+	// draw the floor
+	setAmbientColor(.1f, .1f, .1f);
+	setDiffuseColor(COLOR_RED);
+	glPushMatrix();
+	glTranslated(-25, -8, -25);
+
+	drawTextureBox(50, 0.01f, 50);
+
+	//drawBox(50, 0.01f, 50);
+
+	glPopMatrix();
+
+
+	// draw the model
+	setDiffuseColor(0.5f, 0.5f, 0);
+
+	//drawSphere(3);
+	glPopMatrix();
+	// parameters
+	float r1 = 3; // r of the body
+	float h_head = 1.8;
+	float r_top = 1.5, r_bottom = 2;
+	float h_middle = 6;
+	float h_bottom = 1.5;
+	float h_top = 1;
+	float h_leg = 1.8;
+	float h_feet = 0.8;
+	float body_width_scale = 1;
+	float body_depth_scale = 0.8;
+
+
+	glTranslated(VAL(XPOS), h_bottom + h_feet + h_leg + VAL(YPOS), VAL(ZPOS));
+	glRotated(90, 0, 1, 0);
+	glTranslated(0, -3, 0);
+	glScaled(0.6, 0.6, 0.6);
+
+
+	glPushMatrix();
+	{
+		// middle body
+
+
+
+		glScaled(body_depth_scale, 1, body_width_scale);
+
+		glTranslated(0, -h_middle, 0);
+		setDiffuseColor(0.5, 0.5, 0);
+		drawBodyOut(h_middle);
+		glTranslated(0, h_middle, 0);
+		glScaled(1 / body_depth_scale, 1, 1 / body_width_scale);
+
+
+
+
+
+		float delta1 = 1.5;
+		glPushMatrix();
+		{
+			glRotated(-90, 0, 1.0, 0);
+			glTranslated(-4 - delta1, -1, 0);
+			glPushMatrix();
+			{
+				setDiffuseColor(1, 1, 0);
+				glTranslated(1.5, 0, -1);
+				drawBox(2, 1, 1);
+			}
+			glPopMatrix();
+			glRotated(VAL(RIGHT_ARM_X_ROTATE), 1.0, 0, 0);
+			drawRightArm();
+		}
+		glPopMatrix();
+
+		glPushMatrix();
+		{
+			glRotated(-90, 0, 1.0, 0);
+
+			glTranslated(4 + delta1, -1, 0);
+			glPushMatrix();
+			{
+				setDiffuseColor(1, 1, 0);
+				glTranslated(-3.5, 0, -1);
+				drawBox(2, 1, 1);
+			}
+			glPopMatrix();
+
+			glRotated(VAL(LEFT_ARM_X_ROTATE), 1.0, 0, 0);
+			drawLeftArm();
+		}
+		glPopMatrix();
+
+		glPushMatrix();
+		{
+			// head
+			float diff = 0.12;
+			float w_head = 2.2;
+			float h1 = 0.2, h2 = 1.3, h3 = h_head - h1 - h2;
+			float w1 = 0.1, w2 = w_head / 2 - w1;
+			float h_depth = 1.3;
+
+			glPushMatrix();  // whole head
+			{
+				glRotated(VAL(HEAD_ROTATE), 0, 1, 0);
+
+				glPushMatrix();
+				{
+					setDiffuseColor(1, 1, 0);
+					// left head
+					float v[10][3] =
+					{
+						{0,       0,       0},
+						{0,       h_head,  0},
+						{0,       h2 + h3,   -w_head / 2},
+						{0,       h3,      -w_head / 2},
+						{0,       0,       -w2},
+						{h_depth, 0,       0},
+						{h_depth, h_head,  0},
+						{h_depth, h2 + h3, -w_head / 2},
+						{h_depth, h3,      -w_head / 2},
+						{h_depth, 0,       -w2}
+					};
+					glTranslated(-h_depth / 2, 0, -diff / 2);
+					draw_prism5_helper(v);
+
+					glPushMatrix();
+					{
+						// eye
+						setAmbientColor(.1f, .1f, .1f);
+						setDiffuseColor(140 / 255.0, 243 / 255.0, 252 / 255.0);
+
+						glTranslated(0, h_head / 2, -w_head / 4);
+						drawSphere(0.2);
+
+						setAmbientColor(.1f, .1f, .1f);
+						setDiffuseColor(0.5f, 0.5f, 0);
+
+					}
+					glPopMatrix();
+
+				}
+				glPopMatrix();
+				glPushMatrix();
+				{
+					// right head
+					float v[10][3] =
+					{
+						{0,       0,       0},
+						{0,       h_head,  0},
+						{0,       h2 + h3, w_head / 2},
+						{0,       h3,      w_head / 2},
+						{0,       0,       w2},
+						{h_depth, 0,       0},
+						{h_depth, h_head,  0},
+						{h_depth, h2 + h3, w_head / 2},
+						{h_depth, h3,      w_head / 2},
+						{h_depth, 0,       w2}
+					};
+					glTranslated(-h_depth / 2, 0, diff / 2);
+					draw_prism5_helper(v);
+
+					glPushMatrix();
+					{
+						// eye
+						setAmbientColor(.1f, .1f, .1f);
+						setDiffuseColor(140 / 255.0, 243 / 255.0, 252 / 255.0);
+
+
+						glTranslated(0, h_head / 2, w_head / 4);
+						drawSphere(0.28);
+
+						setAmbientColor(.1f, .1f, .1f);
+						setDiffuseColor(0.5f, 0.5f, 0);
+
+					}
+					glPopMatrix();
+
+				}
+				glPopMatrix();
+			}
+			glPopMatrix();
+		}
+		glPopMatrix();
+		glPushMatrix();
+		{
+			//// bottom body
+
+			float leg_width = 0.9;
+			glPushMatrix();
+			{
+				// left leg
+				glTranslated(-0.6, -h_middle - h_leg, -leg_width / 2 + 1.1);
+				glRotated(20, 0, 1, 0);
+				drawTextureBox(leg_width, h_leg, leg_width);
+				glPushMatrix();
+				{
+					// feet
+					glRotated(VAL(LEFT_FEET_ROTATE), 0, 0, 1);
+					float v[6][3] =
+					{
+						{0 + leg_width, 0, 0},
+						{0 + leg_width, 0, leg_width},
+						{-2, -h_feet, 0 - 0.5},
+						{-2, -h_feet, leg_width + 0.5},
+						{0 + leg_width, -h_feet, 0},
+						{0 + leg_width, -h_feet, leg_width},
+					};
+
+					draw_feet_helper(v);
+				}
+				glPopMatrix();
+			}
+			glPopMatrix();
+			glPushMatrix();
+			{
+				// right leg
+				glTranslated(-0.6, -h_middle - h_leg, -leg_width / 2 - 1.1);
+				glRotated(-20, 0, 1, 0);
+				drawTextureBox(leg_width, h_leg, leg_width);
+
+				// feet
+				glRotated(VAL(RIGHT_FEET_ROTATE), 0, 0, 1);
+				float v[6][3] =
+				{
+					{0 + leg_width, 0, 0},
+					{0 + leg_width, 0, leg_width},
+					{-2, -h_feet, 0 - 0.5},
+					{-2, -h_feet, leg_width + 0.5},
+					{0 + leg_width, -h_feet, 0},
+					{0 + leg_width, -h_feet, leg_width},
+				};
+
+				draw_feet_helper(v);
+			}
+			glPopMatrix();
+		}
+		glPopMatrix();
+
+		glPushMatrix();
+		int h = r1 + 2, h2 = 2.5;
+		{
+			// left jet
+			glTranslated(r1 * body_depth_scale, r1 / 2 + 2, -2);
+			glRotated(90, 1, 0, 0);
+			drawCylinder(h, 0.35, 0.35);
+
+			if (VAL(JETTING) == 1)
+				drawJetting();
+			setDiffuseColor(0.5, 0.5, 0);
+			glPushMatrix();
+			{
+				// jet header
+				drawCylinder(h2, 0.15, 0.55);
+			}
+			glPopMatrix();
+		}
+		glPopMatrix();
+
+		glPushMatrix();
+		{
+			// right jet
+			glTranslated(r1 * body_depth_scale, r1 / 2 + 2, 2);
+			glRotated(90, 1, 0, 0);
+			drawCylinder(h, 0.35, 0.35);
+
+			if (VAL(JETTING) == 1)
+				drawJetting();
+
+
+			setDiffuseColor(0.5, 0.5, 0);
+			glPushMatrix();
+			{
+				// jet header
+				drawCylinder(h2, 0.15, 0.5);
+			}
+			glPopMatrix();
+		}
+		glPopMatrix();
+	}
+	glPopMatrix();
+}
+
+char* instruction[4] = {"t","t","s","t"};
+char* rule1[3] = { "abc","abc","abc" };
+char* rule2[1] = { "abcd" };
+char* rule3[5] = { "s" };
+char* rule4[1] = { "t" };
+
+char** rule[4] = { rule1,rule2,rule3,rule4 };
+
+
+void draw3DLTree1(int type,float lastL,int incrAngle,int iter,const char* instr)
+{
+	float length = lastL;
+	if (iter == 0)
+		return;
+
+
+	for (int i = 0; i < strlen(instr); i++)
+	{
+		switch (instr[i])
+		{
+		case 'a':
+
+			glPushMatrix();
+			{
+				glTranslatef(length*(iter+1)/iter, 0, 0);
+				glRotatef(120, 1, 0, 0);
+				glRotatef(45+ incrAngle, 0, 0, 1);
+				glBegin(GL_LINES);
+				glVertex3f(0, 0, 0);
+				glVertex3f(length, 0, 0);
+				glEnd();
+				draw3DLTree1(type, lastL * iter/(iter + 1) , incrAngle, iter - 1, rule[type][0]);
+			}
+			glPopMatrix();
+			break;
+		case 'b':
+
+			glPushMatrix();
+			{
+				glTranslatef(length * (iter + 1) / iter, 0, 0);
+				glRotatef(240, 1, 0, 0);
+				glRotatef(45+ incrAngle, 0, 0, 1);
+				glBegin(GL_LINES);
+				glVertex3f(0, 0, 0);
+				glVertex3f(length, 0, 0);
+				glEnd();
+				draw3DLTree1(type, lastL * iter / (iter + 1), incrAngle, iter - 1, rule[type][0]);
+			}
+			glPopMatrix();
+			break;
+		case 'c':
+			glPushMatrix();
+			{
+				glTranslatef(length * (iter + 1) / iter, 0, 0);
+				glRotatef(0, 1, 0, 0);
+				glRotatef(45+ incrAngle, 0, 0, 1);
+				glBegin(GL_LINES);
+				glVertex3f(0, 0, 0);
+				glVertex3f(length, 0, 0);
+				glEnd();
+				draw3DLTree1(type, lastL * iter / (iter + 1), incrAngle, iter - 1, rule[type][0]);
+			}
+			glPopMatrix();
+			break;
+		default:
+			glBegin(GL_LINES);
+			glVertex3f(0, 0, 0);
+			glVertex3f(length, 0, 0);
+			glEnd();
+
+			draw3DLTree1(type, lastL * iter / (iter + 1), incrAngle, iter - 1, rule[type][0]);
+
+			break;
+		}
+	}
+
+}
+
+
+void draw3DLTree2(int type, float lastL, int incrAngle, int iter, const char* instr)
+{
+	float length = lastL;
+	if (iter == 0)
+		return;
+
+
+	for (int i = 0; i < strlen(instr); i++)
+	{
+		switch (instr[i])
+		{
+		case 'a':
+
+			glPushMatrix();
+			{
+				glTranslatef(length  *1/4, 0, 0);
+				glRotatef(0, 1, 0, 0);
+				glRotatef(60 + incrAngle, 0, 0, 1);
+				glBegin(GL_LINES);
+				glVertex3f(0, 0, 0);
+				glVertex3f(length/3, 0, 0);
+				glEnd();
+
+				glTranslated(length/3 , 0, 0);
+
+				glRotatef(-60 , 0, 0, 1);
+
+				glBegin(GL_LINES);
+				glVertex3f(0, 0, 0);
+				glVertex3f(length *3/5, 0, 0);
+				glEnd();
+
+				glPushMatrix();
+				{
+					glRotated(80, 1,0, 0);
+					draw3DLTree2(type, length * 3 / 5 * 0.9, incrAngle, iter - 1, rule[type][0]);
+				}
+
+				glPopMatrix();
+
+			}
+			glPopMatrix();
+			break;
+
+		case 'b':
+
+			glPushMatrix();
+			{
+				glTranslatef(length * 1 / 3, 0, 0);
+				glRotatef(90, 1, 0, 0);
+				glRotatef(60 + incrAngle, 0, 0, 1);
+
+				glBegin(GL_LINES);
+				glVertex3f(0, 0, 0);
+				glVertex3f(length * 1 / 3 *0.8, 0, 0);
+				glEnd();
+
+				glTranslated(length * 1 / 3 * 0.8, 0, 0);
+				glRotatef(-60 - incrAngle, 0, 0, 1);
+
+				glBegin(GL_LINES);
+				glVertex3f(0, 0, 0);
+				glVertex3f(length * 1 / 3, 0, 0);
+				glEnd();
+
+				glPushMatrix();
+				{
+					glRotated(10, 1,0, 0);
+					draw3DLTree2(type, length * 1 / 3 * 0.9, incrAngle, iter - 1, rule[type][0]);
+				}
+
+				glPopMatrix();
+			}
+			glPopMatrix();
+			break;
+
+		case 'c':
+
+			glPushMatrix();
+			{
+				glTranslatef(length  * 3 / 5, 0, 0);
+				glRotatef(180, 1, 0, 0);
+				glRotatef(60 + incrAngle, 0, 0, 1);
+
+				glBegin(GL_LINES);
+				glVertex3f(0, 0, 0);
+				glVertex3f(length * 1/4, 0, 0);
+				glEnd();
+
+				glTranslated(length * 1 / 4, 0, 0);
+				glRotatef(-60 - incrAngle, 0, 0, 1);
+				glBegin(GL_LINES);
+				glVertex3f(0, 0, 0);
+				glVertex3f(length * 1 / 4, 0, 0);
+				glEnd();
+
+				glPushMatrix();
+				{
+					glRotated(57, 1,0, 0);
+					draw3DLTree2(type, length * 1 / 4 * 0.9, incrAngle, iter - 1, rule[type][0]);
+				}
+				glPopMatrix();
+
+			}
+			glPopMatrix();
+			break;
+
+		case 'd':
+
+			glPushMatrix();
+			{
+				glTranslatef(length * 3 / 4, 0, 0);
+				glRotatef(270, 1, 0, 0);
+				glRotatef(60 + incrAngle, 0, 0, 1);
+				glBegin(GL_LINES);
+				glVertex3f(0, 0, 0);
+				glVertex3f(length /5, 0, 0);
+				glEnd();
+
+				glTranslated(length/5, 0, 0);
+				glRotatef(-60 - incrAngle, 0, 0, 1);
+
+				glBegin(GL_LINES);
+				glVertex3f(0, 0, 0);
+				glVertex3f(length * 1/5, 0, 0);
+				glEnd();
+
+				glPushMatrix();
+				{
+					glRotated(30,1,0, 0);
+					draw3DLTree2(type, length * 1 / 5 * 0.9, incrAngle, iter - 1, rule[type][0]);
+				}
+				glPopMatrix();
+			}
+			glPopMatrix();
+			break;
+
+		default:
+			glBegin(GL_LINES);
+			glVertex3f(0, 0, 0);
+			glVertex3f(length*1.1, 0, 0);
+			glEnd();
+
+			draw3DLTree2(type, length *0.9, incrAngle, iter - 1, rule[type][0]);
+			glPushMatrix();
+			{
+
+				glRotated(45, 1, 0, 0);
+				draw3DLTree2(type, length * 1.1, incrAngle, iter-1, rule[type][0]);
+			}
+			glPopMatrix();
+			break;
+		}
+	}
+
+}
+
+
+
+void draw2DLSnowflake(int type, float L, int incrAngle, int iter, const char* instr)
+{
+	float length = L * pow(2.0f, iter) * iter * 0.05;
+	if (iter == 0)
+		return;
+
+	for (int i = 0; i < 6; i++)
+	{
+		glPushMatrix();
+		{
+			glRotated(60 * i, 0, 0, 1);
+			glBegin(GL_LINES);
+			glVertex3f(0, 0, 0);
+			glVertex3f(length, 0, 0);
+			glEnd();
+			glTranslated(length, 0, 0);
+			draw2DLSnowflake(type, L, incrAngle, iter - 1, rule[type][0]);
+		}
+		glPopMatrix();
+	}
+
+}
+
+
+void draw2DLTree(int type, float L, int incrAngle, int iter, const char* instr)
+{
+	float length1 = L * 0.5;
+	float length2 = L * 0.3;
+	if (iter == 0)
+		return;
+
+
+	glBegin(GL_LINES);
+	glVertex3f(0, 0, 0);
+	glVertex3f(L, 0, 0);
+	glEnd();
+
+	glPushMatrix();
+	{
+		glTranslated(L * 0.3,0,0);
+		glRotated(70, 0, 0, 1);
+
+		glBegin(GL_LINES);
+		glVertex3f(0, 0, 0);
+		glVertex3f(length1, 0, 0);
+		glEnd();
+
+		draw2DLTree(type, length1, incrAngle, iter - 1, rule[type][0]);
+	}
+	glPopMatrix();
+
+	glPushMatrix();
+	{
+		glTranslated(L * 0.3, 0, 0);
+		glRotated(-70, 0, 0, 1);
+
+		glBegin(GL_LINES);
+		glVertex3f(0, 0, 0);
+		glVertex3f(length1, 0, 0);
+		glEnd();
+
+		draw2DLTree(type, length1, incrAngle, iter - 1, rule[type][0]);
+	}
+	glPopMatrix();
+
+	glPushMatrix();
+	{
+		glTranslated(L * 0.7, 0, 0);
+		glRotated(70, 0, 0, 1);
+
+		glBegin(GL_LINES);
+		glVertex3f(0, 0, 0);
+		glVertex3f(length2, 0, 0);
+		glEnd();
+
+		draw2DLTree(type, length2, incrAngle, iter - 1, rule[type][0]);
+	}
+	glPopMatrix();
+
+	glPushMatrix();
+	{
+		glTranslated(L * 0.7, 0, 0);
+		glRotated(-70, 0, 0, 1);
+
+		glBegin(GL_LINES);
+		glVertex3f(0, 0, 0);
+		glVertex3f(length2, 0, 0);
+		glEnd();
+
+		draw2DLTree(type, length2, incrAngle, iter - 1, rule[type][0]);
+	}
+	glPopMatrix();
+}
+
+typedef void(*FunctionPointer)(int , float , int , int , const char* );
+FunctionPointer functionPointers[] = { draw3DLTree1 ,draw3DLTree2,draw2DLSnowflake, draw2DLTree };
+
+
 // We are going to override (is that the right word?) the draw()
 // method of ModelerView to draw out SampleModel
 void RobotModel::draw()
@@ -1028,286 +1648,34 @@ void RobotModel::draw()
 	glLightfv(GL_LIGHT1, GL_DIFFUSE, light_intensity);
 	glLightfv(GL_LIGHT1, GL_SPECULAR, light_intensity);
 
-	// draw the floor
-	setAmbientColor(.1f, .1f, .1f);
-	setDiffuseColor(COLOR_RED);
-	glPushMatrix();
-	glTranslated(-25, -8, -25);
-
-	drawTextureBox(50, 0.01f, 50);
-
-	//drawBox(50, 0.01f, 50);
-
-	glPopMatrix();
 
 
-	// draw the model
-	setDiffuseColor(0.5f, 0.5f, 0);
+	if (VAL(DISPLAY_L_SYSTEM) == 0)
+	{
+		drawRobot();
+	}
+	else
+	{
+		int type = VAL(OBJECT_TYPE);
+		float d_value = VAL(D_VALUE);
+		int inital_angle = VAL(INITIAL_ANGLE);
+		int angle_of_increment = VAL(ANGLE_OF_INCREMENT);
+		int iterator = VAL(ITERATOR);
 
-	//drawSphere(3);
-	glPopMatrix();
-	// parameters
-	float r1 = 3; // r of the body
-	float h_head = 1.8;
-	float r_top = 1.5, r_bottom = 2;
-	float h_middle = 6;
-	float h_bottom = 1.5;
-	float h_top = 1;
-	float h_leg = 1.8;
-	float h_feet = 0.8;
-	float body_width_scale = 1;
-	float body_depth_scale = 0.8;
-
-	
-		glTranslated(VAL(XPOS), h_bottom + h_feet + h_leg + VAL(YPOS), VAL(ZPOS));
-		glRotated(90, 0, 1, 0);
-		glTranslated(0, -3, 0);
-		glScaled(0.6, 0.6, 0.6);
-
-
+		setDiffuseColor(1, 1, 1);
+		glLineWidth(3);
 		glPushMatrix();
 		{
-					// middle body
+			glRotated(inital_angle, 0, 0, 1);
 
 
-
-			glScaled(body_depth_scale, 1, body_width_scale);
-
-			glTranslated(0, -h_middle, 0);
-			setDiffuseColor(0.5, 0.5, 0);
-			drawBodyOut(h_middle);
-			glTranslated(0, h_middle, 0);
-			glScaled(1 / body_depth_scale, 1, 1 / body_width_scale);
-
-
-
-
-
-			float delta1 = 1.5;
-			glPushMatrix();
-			{
-				glRotated(-90, 0, 1.0, 0);
-				glTranslated(-4 - delta1, -1, 0);
-				glPushMatrix();
-				{
-					setDiffuseColor(1, 1, 0);
-					glTranslated(1.5, 0, -1);
-					drawBox(2, 1, 1);
-				}
-				glPopMatrix();
-				glRotated(VAL(RIGHT_ARM_X_ROTATE), 1.0, 0, 0);
-				drawRightArm();
-			}
-			glPopMatrix();
-
-			glPushMatrix();
-			{
-				glRotated(-90, 0, 1.0, 0);
-
-				glTranslated(4 + delta1, -1, 0);
-				glPushMatrix();
-				{
-					setDiffuseColor(1, 1, 0);
-					glTranslated(-3.5, 0, -1);
-					drawBox(2, 1, 1);
-				}
-				glPopMatrix();
-
-				glRotated(VAL(LEFT_ARM_X_ROTATE), 1.0, 0, 0);
-				drawLeftArm();
-			}
-			glPopMatrix();
-
-			glPushMatrix();
-			{
-				// head
-				float diff = 0.12;
-				float w_head = 2.2;
-				float h1 = 0.2, h2 = 1.3, h3 = h_head - h1 - h2;
-				float w1 = 0.1, w2 = w_head / 2 - w1;
-				float h_depth = 1.3;
-
-				glPushMatrix();  // whole head
-				{
-					glRotated(VAL(HEAD_ROTATE), 0, 1, 0);
-
-					glPushMatrix();
-					{
-						setDiffuseColor(1, 1, 0);
-						// left head
-						float v[10][3] =
-						{
-							{0,       0,       0},
-							{0,       h_head,  0},
-							{0,       h2 + h3,   -w_head / 2},
-							{0,       h3,      -w_head / 2},
-							{0,       0,       -w2},
-							{h_depth, 0,       0},
-							{h_depth, h_head,  0},
-							{h_depth, h2 + h3, -w_head / 2},
-							{h_depth, h3,      -w_head / 2},
-							{h_depth, 0,       -w2}
-						};
-						glTranslated(-h_depth / 2, 0, -diff / 2);
-						draw_prism5_helper(v);
-
-						glPushMatrix();
-						{
-							// eye
-							setAmbientColor(.1f, .1f, .1f);
-							setDiffuseColor(140 / 255.0, 243 / 255.0, 252 / 255.0);
-
-							glTranslated(0, h_head / 2, -w_head / 4);
-							drawSphere(0.2);
-
-							setAmbientColor(.1f, .1f, .1f);
-							setDiffuseColor(0.5f, 0.5f, 0);
-
-						}
-						glPopMatrix();
-
-					}
-					glPopMatrix();
-					glPushMatrix();
-					{
-						// right head
-						float v[10][3] =
-						{
-							{0,       0,       0},
-							{0,       h_head,  0},
-							{0,       h2 + h3, w_head / 2},
-							{0,       h3,      w_head / 2},
-							{0,       0,       w2},
-							{h_depth, 0,       0},
-							{h_depth, h_head,  0},
-							{h_depth, h2 + h3, w_head / 2},
-							{h_depth, h3,      w_head / 2},
-							{h_depth, 0,       w2}
-						};
-						glTranslated(-h_depth / 2, 0, diff / 2);
-						draw_prism5_helper(v);
-
-						glPushMatrix();
-						{
-							// eye
-							setAmbientColor(.1f, .1f, .1f);
-							setDiffuseColor(140 / 255.0, 243 / 255.0, 252 / 255.0);
-
-
-							glTranslated(0, h_head / 2, w_head / 4);
-							drawSphere(0.28);
-
-							setAmbientColor(.1f, .1f, .1f);
-							setDiffuseColor(0.5f, 0.5f, 0);
-
-						}
-						glPopMatrix();
-
-					}
-					glPopMatrix();
-				}
-				glPopMatrix();
-			}
-			glPopMatrix();
-			glPushMatrix();
-			{
-				//// bottom body
-
-				float leg_width = 0.9;
-				glPushMatrix();
-				{
-					// left leg
-					glTranslated(-0.6, -h_middle - h_leg, -leg_width / 2 + 1.1);
-					glRotated(20, 0, 1, 0);
-					drawTextureBox(leg_width, h_leg, leg_width);
-					glPushMatrix();
-					{
-						// feet
-						glRotated(VAL(LEFT_FEET_ROTATE), 0, 0, 1);
-						float v[6][3] =
-						{
-							{0 + leg_width, 0, 0},
-							{0 + leg_width, 0, leg_width},
-							{-2, -h_feet, 0 - 0.5},
-							{-2, -h_feet, leg_width + 0.5},
-							{0 + leg_width, -h_feet, 0},
-							{0 + leg_width, -h_feet, leg_width},
-						};
-
-						draw_feet_helper(v);
-					}
-					glPopMatrix();
-				}
-				glPopMatrix();
-				glPushMatrix();
-				{
-					// right leg
-					glTranslated(-0.6, -h_middle - h_leg, -leg_width / 2 - 1.1);
-					glRotated(-20, 0, 1, 0);
-					drawTextureBox(leg_width, h_leg, leg_width);
-
-					// feet
-					glRotated(VAL(RIGHT_FEET_ROTATE), 0, 0, 1);
-					float v[6][3] =
-					{
-						{0 + leg_width, 0, 0},
-						{0 + leg_width, 0, leg_width},
-						{-2, -h_feet, 0 - 0.5},
-						{-2, -h_feet, leg_width + 0.5},
-						{0 + leg_width, -h_feet, 0},
-						{0 + leg_width, -h_feet, leg_width},
-					};
-
-					draw_feet_helper(v);
-				}
-				glPopMatrix();
-			}
-			glPopMatrix();
-
-			glPushMatrix();
-			int h = r1 + 2, h2 = 2.5;
-			{
-				// left jet
-				glTranslated(r1 * body_depth_scale, r1 / 2 + 2, -2);
-				glRotated(90, 1, 0, 0);
-				drawCylinder(h, 0.35, 0.35);
-
-				if (VAL(JETTING) == 1)
-					drawJetting();
-				setDiffuseColor(0.5, 0.5, 0);
-				glPushMatrix();
-				{
-					// jet header
-					drawCylinder(h2, 0.15, 0.55);
-				}
-				glPopMatrix();
-			}
-			glPopMatrix();
-
-			glPushMatrix();
-			{
-				// right jet
-				glTranslated(r1 * body_depth_scale, r1 / 2 + 2, 2);
-				glRotated(90, 1, 0, 0);
-				drawCylinder(h, 0.35, 0.35);
-
-				if(VAL(JETTING)==1)
-					drawJetting();
-
-
-				setDiffuseColor(0.5, 0.5, 0);
-				glPushMatrix();
-				{
-					// jet header
-					drawCylinder(h2, 0.15, 0.5);
-				}
-				glPopMatrix();
-			}
-			glPopMatrix();
+			float length = d_value * iterator;
+			//drawLTree2(2, length, angle_of_increment, iterator, instruction[2]);
+			functionPointers[type](type, length, angle_of_increment, iterator, instruction[type]);
 		}
 		glPopMatrix();
-	/*}
-	glPopMatrix();*/
+
+	}
 
 }
 
@@ -1318,6 +1686,14 @@ int main()
 	// Constructor is ModelerControl(name, minimumvalue, maximumvalue, 
 	// stepsize, defaultvalue)
 	ModelerControl controls[NUMCONTROLS];
+
+	controls[DISPLAY_L_SYSTEM] = ModelerControl("Display L-system", 0, 1, 1, 0);
+	controls[OBJECT_TYPE] = ModelerControl("L-System: Object type", 0, 3, 1, 0);
+	controls[D_VALUE] = ModelerControl("L-System: d-value", 0, 1.0, 0.01, 0.50);
+	controls[INITIAL_ANGLE] = ModelerControl("L-System: Initial angle", 0, 360, 1, 90);
+	controls[ANGLE_OF_INCREMENT] = ModelerControl("L-System: Angle of increment", 0, 180, 1, 0);
+	controls[ITERATOR] = ModelerControl("L-System: Iterator", 0, 7, 1, 3);
+
 	controls[TEXTURE_MAPPING] = ModelerControl("Texture Mapping", 0, 1, 1, 0);
 	controls[XPOS] = ModelerControl("X Position", -5, 5, 0.1f, 0);
 	controls[YPOS] = ModelerControl("Y Position", -5, 5, 0.1f, 0);
