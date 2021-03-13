@@ -10,6 +10,9 @@
 #include "bitmap.h"
 #include <gl/glu.h>
 #include <FL/fl_ask.H>
+#include "L-System.h"
+
+
 #ifndef M_PI
 #define M_PI 3.141592653589793238462643383279502
 #endif
@@ -138,6 +141,182 @@ void draw_prism5_helper(float v[][3])
 	glVertex3fv(v[5]);
 	glVertex3fv(v[9]);
 	glEnd();
+}
+
+
+void drawHead(float h_head)
+{
+
+	glPushMatrix();
+	{
+		// head
+		float diff = 0.12;
+		float w_head = 2.2;
+		float h1 = 0.2, h2 = 1.3, h3 = h_head - h1 - h2;
+		float w1 = 0.1, w2 = w_head / 2 - w1;
+		float h_depth = 1.3;
+
+		glPushMatrix();  // whole head
+		{
+			if(VAL(MOOD)==3)
+				glRotated(30, 0, 0, 1);
+			else
+				glRotated(VAL(HEAD_ROTATE_X), 0, 0, 1);
+			glRotated(VAL(HEAD_ROTATE_Y), 0, 1, 0);
+
+			glPushMatrix();
+			{
+				setDiffuseColor(1, 1, 0);
+				// left head
+				float v[10][3] =
+				{
+					{0,       0,       0},
+					{0,       h_head,  0},
+					{0,       h2 + h3,   -w_head / 2},
+					{0,       h3,      -w_head / 2},
+					{0,       0,       -w2},
+					{h_depth, 0,       0},
+					{h_depth, h_head,  0},
+					{h_depth, h2 + h3, -w_head / 2},
+					{h_depth, h3,      -w_head / 2},
+					{h_depth, 0,       -w2}
+				};
+				glTranslated(-h_depth / 2, 0, -diff / 2);
+				draw_prism5_helper(v);
+
+				glPushMatrix();
+				{
+					// eye
+					setAmbientColor(.1f, .1f, .1f);
+					setDiffuseColor(140 / 255.0, 243 / 255.0, 252 / 255.0);
+
+					glTranslated(0, h_head / 2, -w_head / 4);
+					drawSphere(0.2);
+
+					setAmbientColor(.1f, .1f, .1f);
+					setDiffuseColor(0.5f, 0.5f, 0);
+
+				}
+				glPopMatrix();
+
+			}
+			glPopMatrix();
+			glPushMatrix();
+			{
+				// right head
+				float v[10][3] =
+				{
+					{0,       0,       0},
+					{0,       h_head,  0},
+					{0,       h2 + h3, w_head / 2},
+					{0,       h3,      w_head / 2},
+					{0,       0,       w2},
+					{h_depth, 0,       0},
+					{h_depth, h_head,  0},
+					{h_depth, h2 + h3, w_head / 2},
+					{h_depth, h3,      w_head / 2},
+					{h_depth, 0,       w2}
+				};
+				glTranslated(-h_depth / 2, 0, diff / 2);
+				draw_prism5_helper(v);
+
+				glPushMatrix();
+				{
+					// eye
+					setAmbientColor(.1f, .1f, .1f);
+					setDiffuseColor(140 / 255.0, 243 / 255.0, 252 / 255.0);
+
+
+					glTranslated(0, h_head / 2, w_head / 4);
+					drawSphere(0.28);
+
+					setAmbientColor(.1f, .1f, .1f);
+					setDiffuseColor(0.5f, 0.5f, 0);
+
+				}
+				glPopMatrix();
+
+			}
+			glPopMatrix();
+		}
+		glPopMatrix();
+	}
+	glPopMatrix();
+}
+
+
+void drawFeet(float h_middle,float h_leg,float h_feet)
+{
+	glPushMatrix();
+	{
+		//// bottom body
+
+		float leg_width = 0.9;
+		glPushMatrix();
+		{
+			// left leg
+			glTranslated(-0.6, -h_middle - h_leg, -leg_width / 2 + 1.1);
+			glRotated(20, 0, 1, 0);
+			drawTextureBox(leg_width, h_leg, leg_width);
+			glPushMatrix();
+			{
+				// feet
+				if (VAL(MOOD) == 3)
+					glRotated(-30, 0, 0, 1);
+				else
+					glRotated(VAL(LEFT_FEET_ROTATE), 0, 0, 1);
+				float v[6][3] =
+				{
+					{0 + leg_width, 0, 0},
+					{0 + leg_width, 0, leg_width},
+					{-2, -h_feet, 0 - 0.5},
+					{-2, -h_feet, leg_width + 0.5},
+					{0 + leg_width, -h_feet, 0},
+					{0 + leg_width, -h_feet, leg_width},
+				};
+
+				draw_feet_helper(v);
+			}
+			glPopMatrix();
+		}
+		glPopMatrix();
+		glPushMatrix();
+		{
+
+			// right leg
+			glTranslated(-0.6, -h_middle - h_leg, -leg_width / 2 - 1.1);
+			if (VAL(MOOD) == 4)
+			{
+				glTranslated(0, h_leg, 0);
+				glRotated(40, 1, 0, 0);
+				glTranslated(0, -h_leg, 0);
+
+				glTranslated(0, leg_width , 0);
+			}
+
+			glRotated(-20, 0, 1, 0);
+			drawTextureBox(leg_width, h_leg, leg_width);
+
+			// feet
+			if (VAL(MOOD) == 3)
+				glRotated(-30, 0, 0, 1);
+			else
+				glRotated(VAL(RIGHT_FEET_ROTATE), 0, 0, 1);
+			float v[6][3] =
+			{
+				{0 + leg_width, 0, 0},
+				{0 + leg_width, 0, leg_width},
+				{-2, -h_feet, 0 - 0.5},
+				{-2, -h_feet, leg_width + 0.5},
+				{0 + leg_width, -h_feet, 0},
+				{0 + leg_width, -h_feet, leg_width},
+			};
+
+			draw_feet_helper(v);
+		}
+		glPopMatrix();
+	}
+	glPopMatrix();
 }
 
 void drawShouder()
@@ -304,13 +483,20 @@ void drawFinger(LeftOrRight rl, int num) {
 		glPushMatrix();
 		{
 			glTranslated(0, -0.1, 0);
-			if (rl == LEFT) 
+			if (VAL(MOOD) == 3)
+				glRotated(80, 0, 0, 1);
+			else if (VAL(MOOD) == 4 && (num==1 || num==2))
+				glRotated(90, 0, 0, 1.0);
+			else if (rl == LEFT) 
 				glRotated(VAL(LEFT_FINGER1_FIRST_JOINT_ROTATE + (num - 1) * 4), 0,0,1);
 			else {
 				int angle1 = VAL(RIGHT_FINGER1_FIRST_JOINT_ROTATE + (num - 1) * 4) + angle;
 				if (angle1 > 90)
 					angle1 = 90;
-				glRotated(angle1, 0, 0, 1);
+				if(VAL(MOOD)==1)
+					glRotated(90, 0, 0, 1);
+				else
+					glRotated(angle1, 0, 0, 1);
 			}
 
 			
@@ -319,14 +505,20 @@ void drawFinger(LeftOrRight rl, int num) {
 			glPushMatrix();
 			{
 				glTranslated(1.4, 0, 0);
-
-				if (rl == LEFT)
+				if (VAL(MOOD) == 3)
+					glRotated(80, 0, 0, 1);
+				else if (VAL(MOOD) == 4 && (num == 1 || num == 2))
+					glRotated(90, 0, 0, 1.0);
+				else if (rl == LEFT)
 					glRotated(VAL(LEFT_FINGER1_SECOND_JOINT_ROTATE + (num - 1) * 4), 0, 0, 1);
 				else {
 					int angle2 = VAL(RIGHT_FINGER1_SECOND_JOINT_ROTATE + (num - 1) * 4) + angle;
 					if (angle2 > 90)
 						angle2 = 90;
-					glRotated(angle2, 0, 0, 1);
+					if (VAL(MOOD) == 1)
+						glRotated(90, 0, 0, 1);
+					else
+						glRotated(angle2, 0, 0, 1);
 				}
 
 				setDiffuseColor(0.8f, 0.8f, 0.8f);
@@ -347,7 +539,7 @@ void drawFinger(LeftOrRight rl, int num) {
 void drawThumb(LeftOrRight rl)
 {
 	int angle;
-	if (rl == LEFT)
+ if (rl == LEFT)
 		angle = VAL(LEFT_THUMB_UP);
 	else {
 		angle = VAL(RIGHT_THUMB_UP) + 60 * VAL(ROCKET_GRAB) / 100;
@@ -367,7 +559,10 @@ void drawThumb(LeftOrRight rl)
 
 		glPushMatrix();
 		{
-			glRotated(20 + angle, 0.0, 0.0, 1.0);
+			if (VAL(MOOD) == 4)
+				glRotated(90, 0.0, 1, 0);
+			else
+				glRotated(20 + angle, 0.0, 0.0, 1.0);
 			glTranslated(0, -0.1, 0);
 			drawBox(0.8, 0.4, 1);
 
@@ -379,7 +574,10 @@ void drawThumb(LeftOrRight rl)
 
 				setDiffuseColor(1.0f, 1.0f, 0.0f);
 				glPushMatrix();
-				glRotated(-20+20*angle/70, 0.0, 0.0, 1.0);
+				if (VAL(MOOD) == 4)
+					glRotated(-90, 0.0, 0, 1.0);
+				else
+					glRotated(-20+20*angle/70, 0.0, 0.0, 1.0);
 				glTranslated(0, -0.1, 0);
 				drawBox(1.0, 0.4, 1);
 				glPopMatrix();
@@ -523,11 +721,18 @@ void drawLeftArm()
 		glPushMatrix();
 		{
 			glTranslated(0.5, -2, -0.75);
-
-			glRotated(-VAL(LEFT_ARM_Y_ROTATE), 0, 1.0, 0);
+			if (VAL(MOOD) == 2)
+				glRotated(30, 0, 1.0, 0);
+			else
+				glRotated(-VAL(LEFT_ARM_Y_ROTATE), 0, 1.0, 0);
 
 			glTranslated(0, 2, 0);
-			glRotated(-VAL(LEFT_ARM_Z_ROTATE), 0, 0, 1.0);
+			if (VAL(MOOD) == 2)
+				glRotated(-30, 0, 0, 1.0);
+			else if (VAL(MOOD) == 4)
+				glRotated(-30, 0, 0, 1.0);
+			else
+				glRotated(-VAL(LEFT_ARM_Z_ROTATE), 0, 0, 1.0);
 			glTranslated(0, -2, 0);
 		
 			drawUpperArm();
@@ -535,7 +740,16 @@ void drawLeftArm()
 			glPushMatrix();
 			{
 				glTranslated(0, 0, 0.5);
-				glRotated(VAL(LEFT_LOWER_ARM_ROTATE), 1, 0, 0);
+				if (VAL(MOOD) == 1)
+					glRotated(90, 1, 0, 0);
+				else if (VAL(MOOD) == 2)
+					glRotated(60, 0, 0, 1.0);
+				else if (VAL(MOOD) == 3)
+					glRotated(80, 1, 0, 0);
+				else if (VAL(MOOD) == 4)
+					glRotated(-30, 1, 0, 0);
+				else
+					glRotated(VAL(LEFT_LOWER_ARM_ROTATE), 1, 0, 0);
 
 				drawLowerArm();
 
@@ -544,7 +758,14 @@ void drawLeftArm()
 					glTranslated(-0.2, -0.5, (0.5 + 0.7 + 1) * 2.5 * 0.4);
 
 					glTranslated(0.5,0.5,0);
-					glRotated(VAL(LEFT_HAND_ROTATE), 0, 0, 1.0);
+					if (VAL(MOOD) == 2)
+						glRotated(-90, 0, 0, 1.0);
+					else if (VAL(MOOD) == 3)
+						glRotated(-90, 0, 0, 1.0);
+					else if (VAL(MOOD) == 4)
+						glRotated(-90, 0, 0, 1.0);
+					else
+						glRotated(VAL(LEFT_HAND_ROTATE), 0, 0, 1.0);
 					glTranslated(-0.5, -0.5, 0);
 
 					
@@ -559,6 +780,8 @@ void drawLeftArm()
 							{
 								glTranslated(0.15, 1.4, 1.7);
 								glTranslated(0.2, 0.5, 0.2);
+								if(VAL(MOOD)==4)
+									glRotated(-20,1,0,0);
 								drawFinger(LEFT, 1);
 							}
 							glPopMatrix();
@@ -567,6 +790,8 @@ void drawLeftArm()
 							{
 								glTranslated(0.15, 0.75, 1.7);
 								glTranslated(0.2, 0.5, 0.2);
+								if (VAL(MOOD) == 4)
+									glRotated(20, 1, 0, 0);
 								drawFinger(LEFT, 2);
 							}
 							glPopMatrix();
@@ -639,7 +864,17 @@ void drawRightArm()
 		glRotated(-VAL(RIGHT_ARM_Y_ROTATE), 0, 1.0, 0);
 
 		glTranslated(0, 2, 0);
-		glRotated(-VAL(RIGHT_ARM_Z_ROTATE), 0, 0, 1.0);
+
+		if (VAL(MOOD) == 1)
+			glRotated(-90, 0, 0, 1.0);
+		else if (VAL(MOOD) == 2)
+			glRotated(-30, 0, 0, 1.0);
+		else if (VAL(MOOD) == 4)
+			glRotated(-30, 0, 0, 1.0);
+		else 
+			glRotated(-VAL(RIGHT_ARM_Z_ROTATE), 0, 0, 1.0);
+
+
 		glTranslated(0, -2, 0);
 
 		drawUpperArm();
@@ -647,7 +882,16 @@ void drawRightArm()
 		glPushMatrix();
 		{
 			glTranslated(0, 0, 0.5);
-			glRotated(VAL(RIGHT_LOWER_ARM_ROTATE), 1, 0, 0);
+			if(VAL(MOOD)==1)
+				glRotated(-30, 1, 0, 0);
+			else if (VAL(MOOD) == 2)
+				glRotated(30, 1, 0, 0);
+			else if (VAL(MOOD) == 3)
+				glRotated(80, 1, 0, 0);
+			else if (VAL(MOOD) == 4)
+				glRotated(-30, 1, 0, 0);
+			else
+				glRotated(VAL(RIGHT_LOWER_ARM_ROTATE), 1, 0, 0);
 
 			drawLowerArm();
 
@@ -665,10 +909,18 @@ void drawRightArm()
 				glTranslated(0,0, 10 * ratio);
 
 				glTranslated(0.5, 0.5, 0);
-				int angle1 = VAL(RIGHT_HAND_ROTATE) + ratio * 90;
-				if (angle1 > 90)
-					angle1 = 90;
-				glRotated(-angle1, 0, 0, 1.0);
+				if (VAL(MOOD) == 3)
+					glRotated(-90, 0, 0, 1.0);
+				else if (VAL(MOOD) == 4)
+					glRotated(-90, 0, 0, 1.0);
+				else
+				{
+					int angle1 = VAL(RIGHT_HAND_ROTATE) + ratio * 90;
+					if (angle1 > 90)
+						angle1 = 90;
+					glRotated(-angle1, 0, 0, 1.0);
+				}
+
 
 				glTranslated(-0.5, -0.5, 0);
 
@@ -686,6 +938,8 @@ void drawRightArm()
 						{
 							glTranslated(0.15, 1.4, 1.7);
 							glTranslated(0.2, 0.5, 0.2);
+							if (VAL(MOOD) == 4)
+								glRotated(-20, 1, 0, 0);
 							drawFinger(RIGHT, 1);
 						}
 						glPopMatrix();
@@ -694,6 +948,8 @@ void drawRightArm()
 						{
 							glTranslated(0.15, 0.75, 1.7);
 							glTranslated(0.2, 0.5, 0.2);
+							if (VAL(MOOD) == 4)
+								glRotated(20, 1, 0, 0);
 							drawFinger(RIGHT, 2);
 						}
 						glPopMatrix();
@@ -1173,11 +1429,15 @@ void drawRobot()
 		glPushMatrix();
 		{
 					// middle body
+			if(VAL(MOOD)==3)
+				glRotated(30, 1, 0, 0);
+			else if (VAL(MOOD) == 4)
+				glRotated(30, 0, 0, 1);
 
-	glTranslated(VAL(XPOS), h_bottom + h_feet + h_leg + VAL(YPOS), VAL(ZPOS));
-	glRotated(90, 0, 1, 0);
-	glTranslated(0, -3, 0);
-	glScaled(0.6, 0.6, 0.6);
+			glTranslated(VAL(XPOS), h_bottom + h_feet + h_leg + VAL(YPOS), VAL(ZPOS));
+			glRotated(90, 0, 1, 0);
+			glTranslated(0, -3, 0);
+			glScaled(0.6, 0.6, 0.6);
 
 
 			glScaled(body_depth_scale, 1, body_width_scale);
@@ -1223,7 +1483,18 @@ void drawRobot()
 				drawBox(2, 1, 1);
 			}
 			glPopMatrix();
-			glRotated(VAL(RIGHT_ARM_X_ROTATE), 1.0, 0, 0);
+
+			glTranslated(0, 0.2, 0.2);
+			if (VAL(MOOD) == 1)
+				glRotated(-90, 1.0, 0, 0);
+			else if(VAL(MOOD) == 3)
+				glRotated(-30, 1.0, 0, 0);
+			else if (VAL(MOOD) == 4)
+				glRotated(-40, 1, 0, 0);
+			else
+				glRotated(VAL(RIGHT_ARM_X_ROTATE), 1.0, 0, 0);
+
+			glTranslated(0, -0.2, -0.2);
 			drawRightArm();
 		}
 		glPopMatrix();
@@ -1241,156 +1512,23 @@ void drawRobot()
 			}
 			glPopMatrix();
 
-			glRotated(VAL(LEFT_ARM_X_ROTATE), 1.0, 0, 0);
+			glTranslated(0, 0.2, 0.2);
+			if (VAL(MOOD) == 2)
+				glRotated(-45, 1.0, 0, 0);
+			else if (VAL(MOOD) == 3)
+				glRotated(-30, 1.0, 0, 0);
+			else if (VAL(MOOD) == 4)
+				glRotated(-40, 1, 0, 0);
+			else
+				glRotated(VAL(LEFT_ARM_X_ROTATE), 1.0, 0, 0);
+			glTranslated(0, -0.2, -0.2);
 			drawLeftArm();
 		}
 		glPopMatrix();
 
-		glPushMatrix();
-		{
-			// head
-			float diff = 0.12;
-			float w_head = 2.2;
-			float h1 = 0.2, h2 = 1.3, h3 = h_head - h1 - h2;
-			float w1 = 0.1, w2 = w_head / 2 - w1;
-			float h_depth = 1.3;
-
-			glPushMatrix();  // whole head
-			{
-				glRotated(VAL(HEAD_ROTATE), 0, 1, 0);
-
-				glPushMatrix();
-				{
-					setDiffuseColor(1, 1, 0);
-					// left head
-					float v[10][3] =
-					{
-						{0,       0,       0},
-						{0,       h_head,  0},
-						{0,       h2 + h3,   -w_head / 2},
-						{0,       h3,      -w_head / 2},
-						{0,       0,       -w2},
-						{h_depth, 0,       0},
-						{h_depth, h_head,  0},
-						{h_depth, h2 + h3, -w_head / 2},
-						{h_depth, h3,      -w_head / 2},
-						{h_depth, 0,       -w2}
-					};
-					glTranslated(-h_depth / 2, 0, -diff / 2);
-					draw_prism5_helper(v);
-
-					glPushMatrix();
-					{
-						// eye
-						setAmbientColor(.1f, .1f, .1f);
-						setDiffuseColor(140 / 255.0, 243 / 255.0, 252 / 255.0);
-
-						glTranslated(0, h_head / 2, -w_head / 4);
-						drawSphere(0.2);
-
-						setAmbientColor(.1f, .1f, .1f);
-						setDiffuseColor(0.5f, 0.5f, 0);
-
-					}
-					glPopMatrix();
-
-				}
-				glPopMatrix();
-				glPushMatrix();
-				{
-					// right head
-					float v[10][3] =
-					{
-						{0,       0,       0},
-						{0,       h_head,  0},
-						{0,       h2 + h3, w_head / 2},
-						{0,       h3,      w_head / 2},
-						{0,       0,       w2},
-						{h_depth, 0,       0},
-						{h_depth, h_head,  0},
-						{h_depth, h2 + h3, w_head / 2},
-						{h_depth, h3,      w_head / 2},
-						{h_depth, 0,       w2}
-					};
-					glTranslated(-h_depth / 2, 0, diff / 2);
-					draw_prism5_helper(v);
-
-					glPushMatrix();
-					{
-						// eye
-						setAmbientColor(.1f, .1f, .1f);
-						setDiffuseColor(140 / 255.0, 243 / 255.0, 252 / 255.0);
-
-
-						glTranslated(0, h_head / 2, w_head / 4);
-						drawSphere(0.28);
-
-						setAmbientColor(.1f, .1f, .1f);
-						setDiffuseColor(0.5f, 0.5f, 0);
-
-					}
-					glPopMatrix();
-
-				}
-				glPopMatrix();
-			}
-			glPopMatrix();
-		}
-		glPopMatrix();
-		glPushMatrix();
-		{
-			//// bottom body
-
-			float leg_width = 0.9;
-			glPushMatrix();
-			{
-				// left leg
-				glTranslated(-0.6, -h_middle - h_leg, -leg_width / 2 + 1.1);
-				glRotated(20, 0, 1, 0);
-				drawTextureBox(leg_width, h_leg, leg_width);
-				glPushMatrix();
-				{
-					// feet
-					glRotated(VAL(LEFT_FEET_ROTATE), 0, 0, 1);
-					float v[6][3] =
-					{
-						{0 + leg_width, 0, 0},
-						{0 + leg_width, 0, leg_width},
-						{-2, -h_feet, 0 - 0.5},
-						{-2, -h_feet, leg_width + 0.5},
-						{0 + leg_width, -h_feet, 0},
-						{0 + leg_width, -h_feet, leg_width},
-					};
-
-					draw_feet_helper(v);
-				}
-				glPopMatrix();
-			}
-			glPopMatrix();
-			glPushMatrix();
-			{
-				// right leg
-				glTranslated(-0.6, -h_middle - h_leg, -leg_width / 2 - 1.1);
-				glRotated(-20, 0, 1, 0);
-				drawTextureBox(leg_width, h_leg, leg_width);
-
-				// feet
-				glRotated(VAL(RIGHT_FEET_ROTATE), 0, 0, 1);
-				float v[6][3] =
-				{
-					{0 + leg_width, 0, 0},
-					{0 + leg_width, 0, leg_width},
-					{-2, -h_feet, 0 - 0.5},
-					{-2, -h_feet, leg_width + 0.5},
-					{0 + leg_width, -h_feet, 0},
-					{0 + leg_width, -h_feet, leg_width},
-				};
-
-				draw_feet_helper(v);
-			}
-			glPopMatrix();
-		}
-		glPopMatrix();
+		drawHead(h_head);
+		
+		drawFeet(h_middle, h_leg, h_feet);
 
 		glPushMatrix();
 		int h = r1 + 2, h2 = 2.5;
@@ -1400,7 +1538,7 @@ void drawRobot()
 			glRotated(90, 1, 0, 0);
 			drawCylinder(h, 0.35, 0.35);
 
-			if (VAL(JETTING) == 1)
+			if (VAL(JETTING) == 1 || VAL(MOOD)==2)
 				drawJetting();
 			setDiffuseColor(0.5, 0.5, 0);
 			glPushMatrix();
@@ -1419,7 +1557,7 @@ void drawRobot()
 			glRotated(90, 1, 0, 0);
 			drawCylinder(h, 0.35, 0.35);
 
-			if (VAL(JETTING) == 1)
+			if (VAL(JETTING) == 1 || VAL(MOOD) == 2)
 				drawJetting();
 
 
@@ -1435,341 +1573,6 @@ void drawRobot()
 	}
 	glPopMatrix();
 }
-
-char* instruction[4] = {"t","t","s","t"};
-char* rule1[3] = { "abc","abc","abc" };
-char* rule2[1] = { "abcd" };
-char* rule3[5] = { "s" };
-char* rule4[1] = { "t" };
-
-char** rule[4] = { rule1,rule2,rule3,rule4 };
-
-
-void draw3DLTree1(int type,float lastL,int incrAngle,int iter,const char* instr)
-{
-	float length = lastL;
-	if (iter == 0)
-		return;
-
-
-	for (int i = 0; i < strlen(instr); i++)
-	{
-		switch (instr[i])
-		{
-		case 'a':
-
-			glPushMatrix();
-			{
-				glTranslatef(length*(iter+1)/iter, 0, 0);
-				glRotatef(120, 1, 0, 0);
-				glRotatef(45+ incrAngle, 0, 0, 1);
-				glBegin(GL_LINES);
-				glVertex3f(0, 0, 0);
-				glVertex3f(length, 0, 0);
-				glEnd();
-				draw3DLTree1(type, lastL * iter/(iter + 1) , incrAngle, iter - 1, rule[type][0]);
-			}
-			glPopMatrix();
-			break;
-		case 'b':
-
-			glPushMatrix();
-			{
-				glTranslatef(length * (iter + 1) / iter, 0, 0);
-				glRotatef(240, 1, 0, 0);
-				glRotatef(45+ incrAngle, 0, 0, 1);
-				glBegin(GL_LINES);
-				glVertex3f(0, 0, 0);
-				glVertex3f(length, 0, 0);
-				glEnd();
-				draw3DLTree1(type, lastL * iter / (iter + 1), incrAngle, iter - 1, rule[type][0]);
-			}
-			glPopMatrix();
-			break;
-		case 'c':
-			glPushMatrix();
-			{
-				glTranslatef(length * (iter + 1) / iter, 0, 0);
-				glRotatef(0, 1, 0, 0);
-				glRotatef(45+ incrAngle, 0, 0, 1);
-				glBegin(GL_LINES);
-				glVertex3f(0, 0, 0);
-				glVertex3f(length, 0, 0);
-				glEnd();
-				draw3DLTree1(type, lastL * iter / (iter + 1), incrAngle, iter - 1, rule[type][0]);
-			}
-			glPopMatrix();
-			break;
-		default:
-			glBegin(GL_LINES);
-			glVertex3f(0, 0, 0);
-			glVertex3f(length, 0, 0);
-			glEnd();
-
-			draw3DLTree1(type, lastL * iter / (iter + 1), incrAngle, iter - 1, rule[type][0]);
-
-			break;
-		}
-	}
-
-}
-
-
-void draw3DLTree2(int type, float lastL, int incrAngle, int iter, const char* instr)
-{
-	float length = lastL;
-	if (iter == 0)
-		return;
-
-
-	for (int i = 0; i < strlen(instr); i++)
-	{
-		switch (instr[i])
-		{
-		case 'a':
-
-			glPushMatrix();
-			{
-				glTranslatef(length  *1/4, 0, 0);
-				glRotatef(0, 1, 0, 0);
-				glRotatef(60 + incrAngle, 0, 0, 1);
-				glBegin(GL_LINES);
-				glVertex3f(0, 0, 0);
-				glVertex3f(length/3, 0, 0);
-				glEnd();
-
-				glTranslated(length/3 , 0, 0);
-
-				glRotatef(-60 , 0, 0, 1);
-
-				glBegin(GL_LINES);
-				glVertex3f(0, 0, 0);
-				glVertex3f(length *3/5, 0, 0);
-				glEnd();
-
-				glPushMatrix();
-				{
-					glRotated(80, 1,0, 0);
-					draw3DLTree2(type, length * 3 / 5 * 0.9, incrAngle, iter - 1, rule[type][0]);
-				}
-
-				glPopMatrix();
-
-			}
-			glPopMatrix();
-			break;
-
-		case 'b':
-
-			glPushMatrix();
-			{
-				glTranslatef(length * 1 / 3, 0, 0);
-				glRotatef(90, 1, 0, 0);
-				glRotatef(60 + incrAngle, 0, 0, 1);
-
-				glBegin(GL_LINES);
-				glVertex3f(0, 0, 0);
-				glVertex3f(length * 1 / 3 *0.8, 0, 0);
-				glEnd();
-
-				glTranslated(length * 1 / 3 * 0.8, 0, 0);
-				glRotatef(-60 - incrAngle, 0, 0, 1);
-
-				glBegin(GL_LINES);
-				glVertex3f(0, 0, 0);
-				glVertex3f(length * 1 / 3, 0, 0);
-				glEnd();
-
-				glPushMatrix();
-				{
-					glRotated(10, 1,0, 0);
-					draw3DLTree2(type, length * 1 / 3 * 0.9, incrAngle, iter - 1, rule[type][0]);
-				}
-
-				glPopMatrix();
-			}
-			glPopMatrix();
-			break;
-
-		case 'c':
-
-			glPushMatrix();
-			{
-				glTranslatef(length  * 3 / 5, 0, 0);
-				glRotatef(180, 1, 0, 0);
-				glRotatef(60 + incrAngle, 0, 0, 1);
-
-				glBegin(GL_LINES);
-				glVertex3f(0, 0, 0);
-				glVertex3f(length * 1/4, 0, 0);
-				glEnd();
-
-				glTranslated(length * 1 / 4, 0, 0);
-				glRotatef(-60 - incrAngle, 0, 0, 1);
-				glBegin(GL_LINES);
-				glVertex3f(0, 0, 0);
-				glVertex3f(length * 1 / 4, 0, 0);
-				glEnd();
-
-				glPushMatrix();
-				{
-					glRotated(57, 1,0, 0);
-					draw3DLTree2(type, length * 1 / 4 * 0.9, incrAngle, iter - 1, rule[type][0]);
-				}
-				glPopMatrix();
-
-			}
-			glPopMatrix();
-			break;
-
-		case 'd':
-
-			glPushMatrix();
-			{
-				glTranslatef(length * 3 / 4, 0, 0);
-				glRotatef(270, 1, 0, 0);
-				glRotatef(60 + incrAngle, 0, 0, 1);
-				glBegin(GL_LINES);
-				glVertex3f(0, 0, 0);
-				glVertex3f(length /5, 0, 0);
-				glEnd();
-
-				glTranslated(length/5, 0, 0);
-				glRotatef(-60 - incrAngle, 0, 0, 1);
-
-				glBegin(GL_LINES);
-				glVertex3f(0, 0, 0);
-				glVertex3f(length * 1/5, 0, 0);
-				glEnd();
-
-				glPushMatrix();
-				{
-					glRotated(30,1,0, 0);
-					draw3DLTree2(type, length * 1 / 5 * 0.9, incrAngle, iter - 1, rule[type][0]);
-				}
-				glPopMatrix();
-			}
-			glPopMatrix();
-			break;
-
-		default:
-			glBegin(GL_LINES);
-			glVertex3f(0, 0, 0);
-			glVertex3f(length*1.1, 0, 0);
-			glEnd();
-
-			draw3DLTree2(type, length *0.9, incrAngle, iter - 1, rule[type][0]);
-			glPushMatrix();
-			{
-
-				glRotated(45, 1, 0, 0);
-				draw3DLTree2(type, length * 1.1, incrAngle, iter-1, rule[type][0]);
-			}
-			glPopMatrix();
-			break;
-		}
-	}
-
-}
-
-
-
-void draw2DLSnowflake(int type, float L, int incrAngle, int iter, const char* instr)
-{
-	float length = L * pow(2.0f, iter) * iter * 0.05;
-	if (iter == 0)
-		return;
-
-	for (int i = 0; i < 6; i++)
-	{
-		glPushMatrix();
-		{
-			glRotated(60 * i, 0, 0, 1);
-			glBegin(GL_LINES);
-			glVertex3f(0, 0, 0);
-			glVertex3f(length, 0, 0);
-			glEnd();
-			glTranslated(length, 0, 0);
-			draw2DLSnowflake(type, L, incrAngle, iter - 1, rule[type][0]);
-		}
-		glPopMatrix();
-	}
-
-}
-
-
-void draw2DLTree(int type, float L, int incrAngle, int iter, const char* instr)
-{
-	float length1 = L * 0.5;
-	float length2 = L * 0.3;
-	if (iter == 0)
-		return;
-
-
-	glBegin(GL_LINES);
-	glVertex3f(0, 0, 0);
-	glVertex3f(L, 0, 0);
-	glEnd();
-
-	glPushMatrix();
-	{
-		glTranslated(L * 0.3,0,0);
-		glRotated(70, 0, 0, 1);
-
-		glBegin(GL_LINES);
-		glVertex3f(0, 0, 0);
-		glVertex3f(length1, 0, 0);
-		glEnd();
-
-		draw2DLTree(type, length1, incrAngle, iter - 1, rule[type][0]);
-	}
-	glPopMatrix();
-
-	glPushMatrix();
-	{
-		glTranslated(L * 0.3, 0, 0);
-		glRotated(-70, 0, 0, 1);
-
-		glBegin(GL_LINES);
-		glVertex3f(0, 0, 0);
-		glVertex3f(length1, 0, 0);
-		glEnd();
-
-		draw2DLTree(type, length1, incrAngle, iter - 1, rule[type][0]);
-	}
-	glPopMatrix();
-
-	glPushMatrix();
-	{
-		glTranslated(L * 0.7, 0, 0);
-		glRotated(70, 0, 0, 1);
-
-		glBegin(GL_LINES);
-		glVertex3f(0, 0, 0);
-		glVertex3f(length2, 0, 0);
-		glEnd();
-
-		draw2DLTree(type, length2, incrAngle, iter - 1, rule[type][0]);
-	}
-	glPopMatrix();
-
-	glPushMatrix();
-	{
-		glTranslated(L * 0.7, 0, 0);
-		glRotated(-70, 0, 0, 1);
-
-		glBegin(GL_LINES);
-		glVertex3f(0, 0, 0);
-		glVertex3f(length2, 0, 0);
-		glEnd();
-
-		draw2DLTree(type, length2, incrAngle, iter - 1, rule[type][0]);
-	}
-	glPopMatrix();
-}
-
-typedef void(*FunctionPointer)(int , float , int , int , const char* );
-FunctionPointer functionPointers[] = { draw3DLTree1 ,draw3DLTree2,draw2DLSnowflake, draw2DLTree };
 
 
 // We are going to override (is that the right word?) the draw()
@@ -1853,7 +1656,9 @@ int main()
 	controls[XPOS] = ModelerControl("X Position", -5, 5, 0.1f, 0);
 	controls[YPOS] = ModelerControl("Y Position", -5, 5, 0.1f, 0);
 	controls[ZPOS] = ModelerControl("Z Position", -5, 5, 0.1f, 0);
-	controls[HEAD_ROTATE] = ModelerControl("Head Rotate", -90, 90, 0.2f, 0);
+	controls[HEAD_ROTATE_X] = ModelerControl("Head Rotate", -90, 90, 0.2f, 0);
+	controls[HEAD_ROTATE_Y] = ModelerControl("Head Rotate", -90, 90, 0.2f, 0);
+	
 	controls[LEFT_FEET_ROTATE] = ModelerControl("Left Feet Rotate", 0, 45, 0.2f, 0);
 	controls[RIGHT_FEET_ROTATE] = ModelerControl("Right Feet Rotate", 0, 45, 0.2f, 0);
 	controls[LIGHT_POS_X] = ModelerControl("Light 0 source position X", -100, 100, 1, 50);
@@ -1864,15 +1669,15 @@ int main()
 	controls[LIGHT1_POS_Z] = ModelerControl("Light 1 source position Z", -100, 100, 1, -100);
 	controls[LIGHT_INTENSITY] = ModelerControl("Light intensity", 0, 1, 0.01f, 1);
 
-	controls[LEFT_ARM_X_ROTATE] = ModelerControl("Left Arm Rotate X", -90, 90, 0.2f, 0);
-	controls[RIGHT_ARM_X_ROTATE] = ModelerControl("Right Arm Rotate X", -90, 90, 0.2f, 0);
+	controls[LEFT_ARM_X_ROTATE] = ModelerControl("Left Arm Rotate X", -180, 90, 0.2f, 0);
+	controls[RIGHT_ARM_X_ROTATE] = ModelerControl("Right Arm Rotate X", -180, 90, 0.2f, 0);
 	controls[LEFT_ARM_Y_ROTATE] = ModelerControl("Left Arm Rotate Y", 0, 90, 0.2f, 0);
 	controls[RIGHT_ARM_Y_ROTATE] = ModelerControl("Right Arm Rotate Y", 0, 90, 0.2f, 0);
 	controls[LEFT_ARM_Z_ROTATE] = ModelerControl("Left Arm Rotate Z", 0, 90, 0.2f, 0);
 	controls[RIGHT_ARM_Z_ROTATE] = ModelerControl("Right Arm Rotate Z", 0, 90, 0.2f, 0);
 
-	controls[LEFT_LOWER_ARM_ROTATE] = ModelerControl("Left Lower Arm Rotate", -15, 90, 0.2f, 0);
-	controls[RIGHT_LOWER_ARM_ROTATE] = ModelerControl("Right Lower Arm Rotate", -15, 90, 0.2f, 0);
+	controls[LEFT_LOWER_ARM_ROTATE] = ModelerControl("Left Lower Arm Rotate", -40, 90, 0.2f, 0);
+	controls[RIGHT_LOWER_ARM_ROTATE] = ModelerControl("Right Lower Arm Rotate", -40, 90, 0.2f, 0);
 
 	controls[ROCKET_GRAB] = ModelerControl("Ability: Rocket Grab", 0, 100, 1.0f, 0);
 
@@ -1899,9 +1704,10 @@ int main()
 
 	controls[CHANGE_HAND] = ModelerControl("Change Hands", 0, 1, 1, 0);
 	controls[JETTING] = ModelerControl("Jetting", 0, 1, 1, 0);
-
 	controls[LASING] = ModelerControl("Lasing!", 0, 1, 1, 0);
 
+
+	controls[MOOD]= ModelerControl("Change Moods", 0, 4, 1, 0);
 
 	ModelerApplication::Instance()->Init(&createSampleModel, controls, NUMCONTROLS);
 	
