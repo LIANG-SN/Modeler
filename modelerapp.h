@@ -50,7 +50,9 @@ public:
     // Get and set slider values.
     double GetControlValue(int controlNumber);
     void   SetControlValue(int controlNumber, double value);
-
+	
+	// Just a flag for updates
+	bool m_animating;
 private:
 	// Private for singleton
 	ModelerApplication() : m_numControls(-1) {}
@@ -74,9 +76,7 @@ private:
 
     static void SliderCallback(Fl_Slider *, void*);
 	static void RedrawLoop(void*);
-
-	// Just a flag for updates
-	bool m_animating;
+	
 };
 
 #endif

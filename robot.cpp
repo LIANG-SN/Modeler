@@ -11,11 +11,13 @@
 #include <gl/glu.h>
 #include <FL/fl_ask.H>
 #include "L-System.h"
-
+#include <iostream>
 
 #ifndef M_PI
 #define M_PI 3.141592653589793238462643383279502
 #endif
+
+static ModelerControl controls[NUMCONTROLS];
 
 enum LeftOrRight
 {
@@ -32,6 +34,7 @@ public:
 	virtual void draw();
 private:
 	bool init{ false };
+	bool lastAnimate{ false };
 };
 
 // We need to make a creator function, mostly because of
@@ -1350,7 +1353,7 @@ void drawCircleRing()
 }
 void drawCircleRingOnBody(float r, float R)
 {
-	float delta = M_PI / 180 / 2;
+	float delta = M_PI / 180 * 4 ;
 	for (float angle = 0; angle < 2 * M_PI; angle += delta)
 	{
 		int d = angle / M_PI * 180;
@@ -1374,9 +1377,9 @@ void draw_shoulder_up_helper()
 	float currentColor[4];
 	glGetFloatv(GL_DIFFUSE, currentColor);
 	glScaled(0.9, 1, 1);
-	for (int i = 0; i < 40; i++)
+	for (int i = 0; i < 10; i++)
 	{
-		glTranslated(0, 0.01, 0);
+		glTranslated(0, 0.03, 0);
 		draw_extruded_surface([](float x) {return (2.25f - (x - 1.5f) * (x - 1.5f)) / 2.25f; },
 			[](float z) {return 0.0f; }, 3, 1);
 	}
@@ -1574,21 +1577,64 @@ void drawRobot()
 	glPopMatrix();
 }
 
-
 // We are going to override (is that the right word?) the draw()
 // method of ModelerView to draw out SampleModel
 void RobotModel::draw()
 {
+	static int state = 1;
 	if (!init)
 	{
 		init_texture();
 		init = true;
+		//AllocConsole();
+		//freopen("CONOUT$", "w", stdout);
+	}
+	else
+	{
+		if (ModelerApplication::Instance()->m_animating == true)
+		{
+			if (lastAnimate == false)
+			{
+				SET(RIGHT_ARM_X_ROTATE, 0);
+				SET(LEFT_ARM_X_ROTATE,  0);
+				SET(RIGHT_ARM_Y_ROTATE, 0);
+				SET(LEFT_ARM_Y_ROTATE, 0);
+				SET(RIGHT_ARM_Z_ROTATE, 0);
+				SET(LEFT_ARM_Z_ROTATE, 0);
+				SET(RIGHT_LOWER_ARM_ROTATE, 75);
+				SET(LEFT_LOWER_ARM_ROTATE, 75);
+				SET(RIGHT_FEET_ROTATE, 0);
+				SET(LEFT_FEET_ROTATE, 0);
+			}
+			else
+			{
+			    if (VAL(RIGHT_ARM_X_ROTATE) > 10)
+			    	state = -1;
+			    else if (VAL(RIGHT_ARM_X_ROTATE) < -10)
+			    	state = 1;
+				if (VAL(RIGHT_ARM_X_ROTATE) >= 0 && VAL(RIGHT_ARM_X_ROTATE) <= 1)
+					SET(JETTING, 1);
+				else
+					SET(JETTING, 0);
+				if (VAL(RIGHT_ARM_X_ROTATE) >= 9)
+					SET(LASING, 1);
+				else
+					SET(LASING, 0);
+			    SET(RIGHT_ARM_X_ROTATE, VAL(RIGHT_ARM_X_ROTATE) + state * 2 );
+			    SET(LEFT_ARM_X_ROTATE, VAL(LEFT_ARM_X_ROTATE) - state * 2);
+			    SET(RIGHT_LOWER_ARM_ROTATE, VAL(RIGHT_LOWER_ARM_ROTATE) + state * 4);
+			    SET(LEFT_LOWER_ARM_ROTATE, VAL(LEFT_LOWER_ARM_ROTATE) - state * 4);
+				SET(RIGHT_FEET_ROTATE, VAL(RIGHT_FEET_ROTATE) - state * 3);
+				SET(LEFT_FEET_ROTATE, VAL(LEFT_FEET_ROTATE) + state * 3);
+			}
+		}
+		lastAnimate = ModelerApplication::Instance()->m_animating;
 	}
 	if (VAL(TEXTURE_MAPPING) == 1)
 		glEnable(GL_TEXTURE_2D);
 	else
 		glDisable(GL_TEXTURE_2D);
-
+	
 	// This call takes care of a lot of the nasty projection 
 	// matrix stuff.  Unless you want to fudge directly with the 
 	// projection matrix, don't bother with this ...
@@ -1605,8 +1651,6 @@ void RobotModel::draw()
 	glLightfv(GL_LIGHT1, GL_POSITION, light1_pos);
 	glLightfv(GL_LIGHT1, GL_DIFFUSE, light_intensity);
 	glLightfv(GL_LIGHT1, GL_SPECULAR, light_intensity);
-
-
 
 	if (VAL(DISPLAY_L_SYSTEM) == 0)
 	{
@@ -1634,6 +1678,7 @@ void RobotModel::draw()
 		glPopMatrix();
 
 	}
+	
 
 }
 
@@ -1643,7 +1688,7 @@ int main()
 	// Initialize the controls
 	// Constructor is ModelerControl(name, minimumvalue, maximumvalue, 
 	// stepsize, defaultvalue)
-	ModelerControl controls[NUMCONTROLS];
+	// ModelerControl controls[NUMCONTROLS];
 
 	controls[DISPLAY_L_SYSTEM] = ModelerControl("Display L-system", 0, 1, 1, 0);
 	controls[OBJECT_TYPE] = ModelerControl("L-System: Object type", 0, 3, 1, 0);
