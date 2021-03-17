@@ -49,6 +49,8 @@ enum SampleModelControls
 
 	MOOD,
 
+	METABALL,
+
 	NUMCONTROLS
 };
 

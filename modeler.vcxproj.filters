@@ -39,6 +39,9 @@
     <ClCompile Include="robot.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Metaball.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bitmap.h">
@@ -69,6 +72,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="L-System.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Metaball.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

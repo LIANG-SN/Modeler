@@ -12,10 +12,69 @@
 #include <FL/fl_ask.H>
 #include "L-System.h"
 #include <iostream>
+#include "Metaball.h"
 
 #ifndef M_PI
 #define M_PI 3.141592653589793238462643383279502
 #endif
+
+
+class Metaball
+{
+public:
+	Vec3f position;
+	float squaredRadius;
+
+	void Init(Vec3f newPosition, float newSquaredRadius)
+	{
+		position = newPosition;
+		squaredRadius = newSquaredRadius;
+	}
+};
+const int numMetaballs = 2;
+Metaball metaballs;//[numMetaballs];
+CUBE_GRID cubeGrid;
+
+//const int minGridSize = 10;
+int gridSize = 40;
+
+class TIMER
+{
+public:
+	TIMER() : isPaused(false)
+	{
+		Reset();
+	}
+	~TIMER() {}
+
+	void Reset(){ startTime =3; }
+	double GetTime(){	
+		return startTime;}
+	void Pause()
+	{
+		if (isPaused)
+			return;		//only pause if unpaused
+
+		isPaused = true;
+		pauseTime = (double)rand();
+	}
+	void Unpause()
+	{
+		if (!isPaused)
+			return;		//only unpause if paused
+
+		isPaused = false;
+		startTime += ((double)rand() - pauseTime);	//update start time to reflect pause
+	}
+
+protected:
+	bool isPaused;
+	double pauseTime;
+	double startTime;
+};
+TIMER timer;
+
+
 
 static ModelerControl controls[NUMCONTROLS];
 
@@ -1591,44 +1650,45 @@ void RobotModel::draw()
 	}
 	else
 	{
-		if (ModelerApplication::Instance()->m_animating == true)
-		{
-			if (lastAnimate == false)
+			if (ModelerApplication::Instance()->m_animating == true)
 			{
-				SET(RIGHT_ARM_X_ROTATE, 0);
-				SET(LEFT_ARM_X_ROTATE,  0);
-				SET(RIGHT_ARM_Y_ROTATE, 0);
-				SET(LEFT_ARM_Y_ROTATE, 0);
-				SET(RIGHT_ARM_Z_ROTATE, 0);
-				SET(LEFT_ARM_Z_ROTATE, 0);
-				SET(RIGHT_LOWER_ARM_ROTATE, 75);
-				SET(LEFT_LOWER_ARM_ROTATE, 75);
-				SET(RIGHT_FEET_ROTATE, 0);
-				SET(LEFT_FEET_ROTATE, 0);
-			}
-			else
-			{
-			    if (VAL(RIGHT_ARM_X_ROTATE) > 10)
-			    	state = -1;
-			    else if (VAL(RIGHT_ARM_X_ROTATE) < -10)
-			    	state = 1;
-				if (VAL(RIGHT_ARM_X_ROTATE) >= 0 && VAL(RIGHT_ARM_X_ROTATE) <= 1)
-					SET(JETTING, 1);
+				if (lastAnimate == false)
+				{
+					SET(RIGHT_ARM_X_ROTATE, 0);
+					SET(LEFT_ARM_X_ROTATE, 0);
+					SET(RIGHT_ARM_Y_ROTATE, 0);
+					SET(LEFT_ARM_Y_ROTATE, 0);
+					SET(RIGHT_ARM_Z_ROTATE, 0);
+					SET(LEFT_ARM_Z_ROTATE, 0);
+					SET(RIGHT_LOWER_ARM_ROTATE, 75);
+					SET(LEFT_LOWER_ARM_ROTATE, 75);
+					SET(RIGHT_FEET_ROTATE, 0);
+					SET(LEFT_FEET_ROTATE, 0);
+				}
 				else
-					SET(JETTING, 0);
-				if (VAL(RIGHT_ARM_X_ROTATE) >= 9)
-					SET(LASING, 1);
-				else
-					SET(LASING, 0);
-			    SET(RIGHT_ARM_X_ROTATE, VAL(RIGHT_ARM_X_ROTATE) + state * 2 );
-			    SET(LEFT_ARM_X_ROTATE, VAL(LEFT_ARM_X_ROTATE) - state * 2);
-			    SET(RIGHT_LOWER_ARM_ROTATE, VAL(RIGHT_LOWER_ARM_ROTATE) + state * 4);
-			    SET(LEFT_LOWER_ARM_ROTATE, VAL(LEFT_LOWER_ARM_ROTATE) - state * 4);
-				SET(RIGHT_FEET_ROTATE, VAL(RIGHT_FEET_ROTATE) - state * 3);
-				SET(LEFT_FEET_ROTATE, VAL(LEFT_FEET_ROTATE) + state * 3);
-			}
+				{
+					if (VAL(RIGHT_ARM_X_ROTATE) > 10)
+						state = -1;
+					else if (VAL(RIGHT_ARM_X_ROTATE) < -10)
+						state = 1;
+					if (VAL(RIGHT_ARM_X_ROTATE) >= 0 && VAL(RIGHT_ARM_X_ROTATE) <= 1)
+						SET(JETTING, 1);
+					else
+						SET(JETTING, 0);
+					if (VAL(RIGHT_ARM_X_ROTATE) >= 9)
+						SET(LASING, 1);
+					else
+						SET(LASING, 0);
+					SET(RIGHT_ARM_X_ROTATE, VAL(RIGHT_ARM_X_ROTATE) + state * 2);
+					SET(LEFT_ARM_X_ROTATE, VAL(LEFT_ARM_X_ROTATE) - state * 2);
+					SET(RIGHT_LOWER_ARM_ROTATE, VAL(RIGHT_LOWER_ARM_ROTATE) + state * 4);
+					SET(LEFT_LOWER_ARM_ROTATE, VAL(LEFT_LOWER_ARM_ROTATE) - state * 4);
+					SET(RIGHT_FEET_ROTATE, VAL(RIGHT_FEET_ROTATE) - state * 3);
+					SET(LEFT_FEET_ROTATE, VAL(LEFT_FEET_ROTATE) + state * 3);
+				}
+			lastAnimate = ModelerApplication::Instance()->m_animating;
 		}
-		lastAnimate = ModelerApplication::Instance()->m_animating;
+
 	}
 	if (VAL(TEXTURE_MAPPING) == 1)
 		glEnable(GL_TEXTURE_2D);
@@ -1652,31 +1712,94 @@ void RobotModel::draw()
 	glLightfv(GL_LIGHT1, GL_DIFFUSE, light_intensity);
 	glLightfv(GL_LIGHT1, GL_SPECULAR, light_intensity);
 
-	if (VAL(DISPLAY_L_SYSTEM) == 0)
+
+	if (VAL(METABALL)==0)
 	{
-		drawRobot();
+		if (VAL(DISPLAY_L_SYSTEM) == 0)
+		{
+			drawRobot();
+		}
+		else
+		{
+			int type = VAL(OBJECT_TYPE);
+			float d_value = VAL(D_VALUE);
+			int inital_angle = VAL(INITIAL_ANGLE);
+			int angle_of_increment = VAL(ANGLE_OF_INCREMENT);
+			int iterator = VAL(ITERATOR);
+
+			setDiffuseColor(1, 1, 1);
+			glLineWidth(3);
+			glPushMatrix();
+			{
+				glRotated(inital_angle, 0, 0, 1);
+
+
+				float length = d_value * iterator;
+				functionPointers[type](type, length, angle_of_increment, iterator, instruction[type]);
+			}
+			glPopMatrix();
+
+		}
 	}
 	else
 	{
-		int type = VAL(OBJECT_TYPE);
-		float d_value = VAL(D_VALUE);
-		int inital_angle = VAL(INITIAL_ANGLE);
-		int angle_of_increment = VAL(ANGLE_OF_INCREMENT);
-		int iterator = VAL(ITERATOR);
-
-		setDiffuseColor(1, 1, 1);
-		glLineWidth(3);
-		glPushMatrix();
-		{
-			glRotated(inital_angle, 0, 0, 1);
 
 
-			float length = d_value * iterator;
-			//drawLTree2(2, length, angle_of_increment, iterator, instruction[2]);
-			functionPointers[type](type, length, angle_of_increment, iterator, instruction[type]);
-		}
-		glPopMatrix();
+		//set up metaballs
+		//for (int i = 0; i < numMetaballs; i++)
+		cubeGrid.CreateMemory();
+		cubeGrid.Init(40);
 
+		metaballs.Init(Vec3f(0.0f, 0.0f, 0.0f), 5.0f);
+
+
+		//float c = 2.0f * (float)cos(timer.GetTime() / 600);
+
+		Vec3f ballToPoint;
+		float squaredRadius;
+		Vec3f ballPosition;
+		float normalScale;
+
+		//for (int i = 0; i < 1; i++)
+		//{
+			squaredRadius = metaballs.squaredRadius;
+			ballPosition = metaballs.position;
+
+			//VC++6 standard does not inline functions
+			//by inlining these maually, in this performance-critical area,
+			//almost a 100% increase in speed is found
+			for (int j = 0; j < cubeGrid.numVertices; j++)
+			{
+				//ballToPoint=cubeGrid.vertices[j].position-ballPosition;
+				ballToPoint = cubeGrid.vertices[j].position - ballPosition;
+
+				//get squared distance from ball to point
+				//float squaredDistance=ballToPoint.GetSquaredLength();
+				float squaredDistance = ballToPoint[0] * ballToPoint[0] +
+					ballToPoint[1] * ballToPoint[1] +
+					ballToPoint[2] * ballToPoint[2];
+				if (squaredDistance == 0.0f)
+					squaredDistance = 0.0001f;
+
+				//value = r^2/d^2
+				cubeGrid.vertices[j].value += squaredRadius / squaredDistance;
+
+				//normal = (r^2 * v)/d^4
+				normalScale = squaredRadius / (squaredDistance * squaredDistance);
+				cubeGrid.vertices[j].normal+=ballToPoint*normalScale;
+				cubeGrid.vertices[j].normal[0] += ballToPoint[0] * normalScale;
+				cubeGrid.vertices[j].normal[1] += ballToPoint[1] * normalScale;
+				cubeGrid.vertices[j].normal[2] += ballToPoint[2] * normalScale;
+			}
+		//}
+
+
+		//
+		////glRotatef((float)timer.GetTime() / 30, 1.0f, 0.0f, 1.0f);
+		//glPushMatrix();
+		//glScaled(0.1, 0.1, 0.1);
+		cubeGrid.DrawSurface(1);
+		//glPopMatrix();
 	}
 	
 
@@ -1753,6 +1876,8 @@ int main()
 
 
 	controls[MOOD]= ModelerControl("Change Moods", 0, 4, 1, 0);
+
+	controls[METABALL] = ModelerControl("Metaball", 0, 1, 1, 0);
 
 	ModelerApplication::Instance()->Init(&createSampleModel, controls, NUMCONTROLS);
 	
