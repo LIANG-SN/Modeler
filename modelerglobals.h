@@ -49,7 +49,7 @@ enum SampleModelControls
 
 	MOOD,
 
-	METABALL,
+	METABALL, METABALL_DESTANICE,
 
 	NUMCONTROLS
 };

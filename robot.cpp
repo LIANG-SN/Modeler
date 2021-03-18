@@ -19,60 +19,7 @@
 #endif
 
 
-class Metaball
-{
-public:
-	Vec3f position;
-	float squaredRadius;
-
-	void Init(Vec3f newPosition, float newSquaredRadius)
-	{
-		position = newPosition;
-		squaredRadius = newSquaredRadius;
-	}
-};
-const int numMetaballs = 2;
-Metaball metaballs;//[numMetaballs];
-CUBE_GRID cubeGrid;
-
-//const int minGridSize = 10;
-int gridSize = 40;
-
-class TIMER
-{
-public:
-	TIMER() : isPaused(false)
-	{
-		Reset();
-	}
-	~TIMER() {}
-
-	void Reset(){ startTime =3; }
-	double GetTime(){	
-		return startTime;}
-	void Pause()
-	{
-		if (isPaused)
-			return;		//only pause if unpaused
-
-		isPaused = true;
-		pauseTime = (double)rand();
-	}
-	void Unpause()
-	{
-		if (!isPaused)
-			return;		//only unpause if paused
-
-		isPaused = false;
-		startTime += ((double)rand() - pauseTime);	//update start time to reflect pause
-	}
-
-protected:
-	bool isPaused;
-	double pauseTime;
-	double startTime;
-};
-TIMER timer;
+CubeVertices cubevertices(150);
 
 
 
@@ -1713,7 +1660,7 @@ void RobotModel::draw()
 	glLightfv(GL_LIGHT1, GL_SPECULAR, light_intensity);
 
 
-	if (VAL(METABALL)==0)
+	if (VAL(METABALL)==1)
 	{
 		if (VAL(DISPLAY_L_SYSTEM) == 0)
 		{
@@ -1743,63 +1690,60 @@ void RobotModel::draw()
 	}
 	else
 	{
+		float distance = VAL(METABALL_DESTANICE);
+		cubevertices.metaball[0].position = Vec3f(distance, 0, 0);
+		cubevertices.metaball[1].position = Vec3f(-distance, 0, 0);
+		cubevertices.Update();
+		cubevertices.drawSurface();
 
 
-		//set up metaballs
-		//for (int i = 0; i < numMetaballs; i++)
-		cubeGrid.CreateMemory();
-		cubeGrid.Init(40);
 
-		metaballs.Init(Vec3f(0.0f, 0.0f, 0.0f), 5.0f);
+		//Testing marching cubes table code
 
+		//setDiffuseColor(1, 1, 1);
+		//glBegin(GL_LINES);
+		//glVertex3f(0, 0, 0);
+		//glVertex3f(1, 0, 0);
+		//glVertex3f(0, 0, 0);
+		//glVertex3f(0, 1, 0);
+		//glVertex3f(0, 0, 0);
+		//glVertex3f(0, 0, 1);
 
-		//float c = 2.0f * (float)cos(timer.GetTime() / 600);
+		//glVertex3f(1, 1, 1);
+		//glVertex3f(1, 1, 0);
+		//glVertex3f(1, 1, 1);
+		//glVertex3f(0, 1, 1);
+		//glVertex3f(1, 1, 1);
+		//glVertex3f(1, 0, 1);
+		//glEnd();
 
-		Vec3f ballToPoint;
-		float squaredRadius;
-		Vec3f ballPosition;
-		float normalScale;
+		//setDiffuseColor(0.8, 0.8, 0);
+		//glBegin(GL_TRIANGLES);
+		//int type =  1 +
+		//			0 * 2 +
+		//			0 * 4 +
+		//			0 * 8 +
+		//			0 * 16 +
+		//			1 * 32 +
+		//			1 * 64 +
+		//			1 * 128;
 
-		//for (int i = 0; i < 1; i++)
+		//for (int j = 0; CubeTable[type][j] != -1; j += 3)
 		//{
-			squaredRadius = metaballs.squaredRadius;
-			ballPosition = metaballs.position;
+		//	glVertex3f(edges[CubeTable[type][j]][0],
+		//		edges[CubeTable[type][j]][1] ,
+		//		edges[CubeTable[type][j]][2]);
 
-			//VC++6 standard does not inline functions
-			//by inlining these maually, in this performance-critical area,
-			//almost a 100% increase in speed is found
-			for (int j = 0; j < cubeGrid.numVertices; j++)
-			{
-				//ballToPoint=cubeGrid.vertices[j].position-ballPosition;
-				ballToPoint = cubeGrid.vertices[j].position - ballPosition;
 
-				//get squared distance from ball to point
-				//float squaredDistance=ballToPoint.GetSquaredLength();
-				float squaredDistance = ballToPoint[0] * ballToPoint[0] +
-					ballToPoint[1] * ballToPoint[1] +
-					ballToPoint[2] * ballToPoint[2];
-				if (squaredDistance == 0.0f)
-					squaredDistance = 0.0001f;
-
-				//value = r^2/d^2
-				cubeGrid.vertices[j].value += squaredRadius / squaredDistance;
-
-				//normal = (r^2 * v)/d^4
-				normalScale = squaredRadius / (squaredDistance * squaredDistance);
-				cubeGrid.vertices[j].normal+=ballToPoint*normalScale;
-				cubeGrid.vertices[j].normal[0] += ballToPoint[0] * normalScale;
-				cubeGrid.vertices[j].normal[1] += ballToPoint[1] * normalScale;
-				cubeGrid.vertices[j].normal[2] += ballToPoint[2] * normalScale;
-			}
+		//	glVertex3f(edges[CubeTable[type][j + 1]][0],
+		//		edges[CubeTable[type][j + 1]][1],
+		//		edges[CubeTable[type][j + 1]][2] );
+		//	glVertex3f(edges[CubeTable[type][j + 2]][0] ,
+		//		edges[CubeTable[type][j + 2]][1] ,
+		//		edges[CubeTable[type][j + 2]][2] );
 		//}
+		//glEnd();
 
-
-		//
-		////glRotatef((float)timer.GetTime() / 30, 1.0f, 0.0f, 1.0f);
-		//glPushMatrix();
-		//glScaled(0.1, 0.1, 0.1);
-		cubeGrid.DrawSurface(1);
-		//glPopMatrix();
 	}
 	
 
@@ -1878,8 +1822,11 @@ int main()
 	controls[MOOD]= ModelerControl("Change Moods", 0, 4, 1, 0);
 
 	controls[METABALL] = ModelerControl("Metaball", 0, 1, 1, 0);
-
+	controls[METABALL_DESTANICE] = ModelerControl("Metaball Distance", 0, 2.5, 0.01, 2.55);
 	ModelerApplication::Instance()->Init(&createSampleModel, controls, NUMCONTROLS);
+
+	//cubevertices.add_metabll(Vec3f(0, 0, 0), 3.0);
+
 	
 	return ModelerApplication::Instance()->Run();
 }
