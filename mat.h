@@ -34,6 +34,7 @@ public:
 
 	//---[ Equal Operators ]-------------------------------
 
+
 	Mat3<T>& operator =( const Mat3<T>& m )
 		{ memcpy(n,m.n,9*sizeof(T)); return *this; }
 	Mat3<T>& operator +=( const Mat3<T>& m )
@@ -160,6 +161,7 @@ public:
 		  return *this; }
 
 	//---[ Access Operators ]------------------------------
+
 
 	T* operator []( int i )
 		{ return &n[i*4]; }

@@ -13,6 +13,7 @@
 #include "L-System.h"
 #include <iostream>
 #include "Metaball.h"
+#include "IK.h"
 
 #ifndef M_PI
 #define M_PI 3.141592653589793238462643383279502
@@ -21,6 +22,57 @@
 
 CubeVertices cubevertices(150);
 
+Vec3f Hand::v1 = Vec3f(-0.5, 0, 0);
+Vec3f Hand::v2 = Vec3f(0, -2.5, 0);
+Vec3f Hand::v3 = Vec3f(0, 0, 3);
+Vec3f Hand::target = Vec3f(-5,0,5);
+
+
+Hand hand0= Hand(0);
+Hand hand1= Hand(1);
+Hand hand2= Hand(2);
+Hand hand3= Hand(3);
+Hand* hands[4] = { &hand0, &hand1,&hand2,&hand3 };
+
+float IK_angles[4] = {0,0,0,0};
+
+void IK_implement()
+{
+	cout << Hand::target << endl;
+	hands[0]->UpdatePoints();
+	float delta_min = hands[0]->delta;
+
+	for (int i = 0; i < 4; i++)
+	{
+		hands[i]->UpdatePoints();
+		float delta_last = hands[i]->delta;
+		int count = 0;
+		while (count < 20 && hands[i]->delta > 0.2)
+		{
+
+			hands[i]->apply_Jacobian(count);
+			hands[i]->UpdatePoints();
+			if (hands[i]->delta - delta_last > 0.3)
+				break;
+
+			if (hands[i]->delta < delta_min)
+			{
+				delta_min = hands[i]->delta;
+				IK_angles[0] = hands[i]->theta_y;
+				IK_angles[1] = hands[i]->theta_x;
+				IK_angles[2] = hands[i]->theta_z;
+				IK_angles[3] = hands[i]->phi;
+			}
+
+			//cout << hand.theta_x << " " << hand.theta_z << " " << hand.theta_y << " " << hand.phi << endl;
+			//cout << hands[i]->delta << endl;
+
+			count++;
+		}
+	}
+
+	cout << delta_min << endl;
+}
 
 
 static ModelerControl controls[NUMCONTROLS];
@@ -730,10 +782,7 @@ void drawLeftArm()
 		glPushMatrix();
 		{
 			glTranslated(0.5, -2, -0.75);
-			if (VAL(MOOD) == 2)
-				glRotated(30, 0, 1.0, 0);
-			else
-				glRotated(-VAL(LEFT_ARM_Y_ROTATE), 0, 1.0, 0);
+
 
 			glTranslated(0, 2, 0);
 			if (VAL(MOOD) == 2)
@@ -744,6 +793,11 @@ void drawLeftArm()
 				glRotated(-VAL(LEFT_ARM_Z_ROTATE), 0, 0, 1.0);
 			glTranslated(0, -2, 0);
 		
+			if (VAL(MOOD) == 2)
+				glRotated(30, 0, 1.0, 0);
+			else
+				glRotated(-VAL(LEFT_ARM_Y_ROTATE), 0, 1.0, 0);
+
 			drawUpperArm();
 
 			glPushMatrix();
@@ -866,22 +920,34 @@ void drawRightArm()
 		drawCircleRingOnBody(0.25, 0.8);
 	}
 	glPopMatrix();
+
 	glPushMatrix();
 	{
 		glTranslated(0.5, -2, -0.75);
 
-		glRotated(-VAL(RIGHT_ARM_Y_ROTATE), 0, 1.0, 0);
+
 
 		glTranslated(0, 2, 0);
+		if(VAL(INVERSE_KINEMATICS)==0)
+		{ 
+			if (VAL(MOOD) == 1)
+				glRotated(-90, 0, 0, 1.0);
+			else if (VAL(MOOD) == 2)
+				glRotated(-30, 0, 0, 1.0);
+			else if (VAL(MOOD) == 4)
+				glRotated(-30, 0, 0, 1.0);
+			else
+				glRotated(-VAL(RIGHT_ARM_Z_ROTATE), 0, 0, 1.0);
 
-		if (VAL(MOOD) == 1)
-			glRotated(-90, 0, 0, 1.0);
-		else if (VAL(MOOD) == 2)
-			glRotated(-30, 0, 0, 1.0);
-		else if (VAL(MOOD) == 4)
-			glRotated(-30, 0, 0, 1.0);
-		else 
-			glRotated(-VAL(RIGHT_ARM_Z_ROTATE), 0, 0, 1.0);
+			glRotated(-VAL(RIGHT_ARM_Y_ROTATE), 0, 1.0, 0);
+		}
+		else
+		{
+			glRotated(IK_angles[0] / M_PI * 180, 0, 1.0, 0);//IK_angles[0]
+			glRotated(IK_angles[2] / M_PI * 180, 0, 0, 1.0);
+		}
+
+
 
 
 		glTranslated(0, -2, 0);
@@ -891,16 +957,24 @@ void drawRightArm()
 		glPushMatrix();
 		{
 			glTranslated(0, 0, 0.5);
-			if(VAL(MOOD)==1)
-				glRotated(-30, 1, 0, 0);
-			else if (VAL(MOOD) == 2)
-				glRotated(30, 1, 0, 0);
-			else if (VAL(MOOD) == 3)
-				glRotated(80, 1, 0, 0);
-			else if (VAL(MOOD) == 4)
-				glRotated(-30, 1, 0, 0);
+			if (VAL(INVERSE_KINEMATICS) == 0)
+			{
+				if (VAL(MOOD) == 1)
+					glRotated(-30, 1, 0, 0);
+				else if (VAL(MOOD) == 2)
+					glRotated(30, 1, 0, 0);
+				else if (VAL(MOOD) == 3)
+					glRotated(80, 1, 0, 0);
+				else if (VAL(MOOD) == 4)
+					glRotated(-30, 1, 0, 0);
+				else
+					glRotated(VAL(RIGHT_LOWER_ARM_ROTATE), 1, 0, 0);
+			}
 			else
-				glRotated(VAL(RIGHT_LOWER_ARM_ROTATE), 1, 0, 0);
+			{
+				glRotated(IK_angles[3] / M_PI * 180, 1, 0, 0);
+			}
+
 
 			drawLowerArm();
 
@@ -1494,14 +1568,22 @@ void drawRobot()
 			glPopMatrix();
 
 			glTranslated(0, 0.2, 0.2);
-			if (VAL(MOOD) == 1)
-				glRotated(-90, 1.0, 0, 0);
-			else if(VAL(MOOD) == 3)
-				glRotated(-30, 1.0, 0, 0);
-			else if (VAL(MOOD) == 4)
-				glRotated(-40, 1, 0, 0);
+			if (VAL(INVERSE_KINEMATICS)==0)
+			{
+				if (VAL(MOOD) == 1)
+					glRotated(-90, 1.0, 0, 0);
+				else if (VAL(MOOD) == 3)
+					glRotated(-30, 1.0, 0, 0);
+				else if (VAL(MOOD) == 4)
+					glRotated(-40, 1, 0, 0);
+				else
+					glRotated(VAL(RIGHT_ARM_X_ROTATE), 1.0, 0, 0);
+			}
 			else
-				glRotated(VAL(RIGHT_ARM_X_ROTATE), 1.0, 0, 0);
+			{
+				glRotated(IK_angles[1] / M_PI * 180, 1.0, 0, 0);
+			}
+
 
 			glTranslated(0, -0.2, -0.2);
 			drawRightArm();
@@ -1583,6 +1665,12 @@ void drawRobot()
 	glPopMatrix();
 }
 
+
+void drawIKRobot()
+{
+	drawRightArm();
+}
+
 // We are going to override (is that the right word?) the draw()
 // method of ModelerView to draw out SampleModel
 void RobotModel::draw()
@@ -1597,6 +1685,8 @@ void RobotModel::draw()
 	}
 	else
 	{
+
+
 			if (ModelerApplication::Instance()->m_animating == true)
 			{
 				if (lastAnimate == false)
@@ -1660,7 +1750,71 @@ void RobotModel::draw()
 	glLightfv(GL_LIGHT1, GL_SPECULAR, light_intensity);
 
 
-	if (VAL(METABALL)==1)
+
+	//Analogy Arm
+
+	//glLineWidth(3);
+
+
+
+	//glPushMatrix();
+	//{
+	//	glScaled(2, 2, 2);
+
+	//	glPushMatrix();
+	//	{
+	//		glTranslated(hand1.target[0], hand1.target[1], hand1.target[2]);
+	//		drawSphere(0.05);
+	//	}
+	//	glPopMatrix();
+
+	//	glBegin(GL_LINES);
+	//	glVertex3f(0, 0, 0);
+	//	glVertex3f(-1, 0, 0);
+	//	glEnd();
+
+	//	glTranslated(-1, 0, 0);
+
+	//	glRotated(IK_angles[0] / M_PI * 180, 0, 1, 0);
+
+	//	glRotated(IK_angles[1] / M_PI * 180, 1, 0, 0);
+
+
+	//	glPushMatrix();
+	//	{
+
+
+	//		glRotated(IK_angles[2] / M_PI * 180, 0, 0, 1);
+
+	//		
+
+	//		glBegin(GL_LINES);
+	//		glVertex3f(0, 0, 0);
+	//		glVertex3f(0, -1, 0);
+	//		glEnd();
+
+	//		glPushMatrix();
+	//		{
+	//			glTranslated(0, -1, 0);
+	//			glRotated(IK_angles[3] / M_PI * 180, 1, 0, 0);
+
+	//			glBegin(GL_LINES);
+	//			glVertex3f(0, 0, 0);
+	//			glVertex3f(0,0, 1);
+	//			glEnd();
+
+
+	//		}
+	//		glPopMatrix();
+	//	}
+	//	glPopMatrix();
+	//}
+	//glPopMatrix();
+
+
+
+
+	if (VAL(METABALL)==0)
 	{
 		if (VAL(DISPLAY_L_SYSTEM) == 0)
 		{
@@ -1749,6 +1903,10 @@ void RobotModel::draw()
 
 }
 
+
+
+
+
 int main()
 {
 	
@@ -1823,10 +1981,15 @@ int main()
 
 	controls[METABALL] = ModelerControl("Metaball", 0, 1, 1, 0);
 	controls[METABALL_DESTANICE] = ModelerControl("Metaball Distance", 0, 2.5, 0.01, 2.55);
+
+	controls[INVERSE_KINEMATICS] = ModelerControl("Inverse Kinematics", 0, 1, 1, 0);
+	controls[DESTINATION_X] = ModelerControl("Destination x", -15, 15, 0.5, -2);//-6
+	controls[DESTINATION_Y] = ModelerControl("Destination y", -15, 15, 0.5, 6);//3
+	controls[DESTINATION_Z] = ModelerControl("Destination z", -15, 15, 0.5, 0.5);//2
+
 	ModelerApplication::Instance()->Init(&createSampleModel, controls, NUMCONTROLS);
 
-	//cubevertices.add_metabll(Vec3f(0, 0, 0), 3.0);
-
+	IK_implement();
 	
 	return ModelerApplication::Instance()->Run();
 }

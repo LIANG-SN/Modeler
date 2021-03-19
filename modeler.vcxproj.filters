@@ -42,8 +42,8 @@
     <ClCompile Include="Metaball.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source.cpp">
-      <Filter>Header Files</Filter>
+    <ClCompile Include="IK.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -78,6 +78,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Metaball.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IK.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
