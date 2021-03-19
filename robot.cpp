@@ -13,11 +13,12 @@
 #include "L-System.h"
 #include <iostream>
 #include "Metaball.h"
+#include "mat.h"
+#include "Kinematics.h"
 
 #ifndef M_PI
 #define M_PI 3.141592653589793238462643383279502
 #endif
-
 
 class Metaball
 {
@@ -74,8 +75,6 @@ protected:
 };
 TIMER timer;
 
-
-
 static ModelerControl controls[NUMCONTROLS];
 
 enum LeftOrRight
@@ -91,9 +90,11 @@ public:
 		: ModelerView(x, y, w, h, label) { }
 
 	virtual void draw();
+	// virtual int handle(int event);
 private:
 	bool init{ false };
 	bool lastAnimate{ false };
+	bool ik_prev{ 0 };
 };
 
 // We need to make a creator function, mostly because of
@@ -102,6 +103,7 @@ ModelerView* createSampleModel(int x, int y, int w, int h, char* label)
 {
 	return new RobotModel(x, y, w, h, label);
 }
+
 
 void draw_feet_helper(float v[][3])
 {
@@ -783,18 +785,26 @@ void drawLeftArm()
 		glPushMatrix();
 		{
 			glTranslated(0.5, -2, -0.75);
+			if (VAL(INVERSE_KINEMATICS) == 0)
+			{
+
 			if (VAL(MOOD) == 2)
 				glRotated(30, 0, 1.0, 0);
 			else
 				glRotated(-VAL(LEFT_ARM_Y_ROTATE), 0, 1.0, 0);
+			}
 
 			glTranslated(0, 2, 0);
+			if (VAL(INVERSE_KINEMATICS) == 0)
+			{
+
 			if (VAL(MOOD) == 2)
 				glRotated(-30, 0, 0, 1.0);
 			else if (VAL(MOOD) == 4)
 				glRotated(-30, 0, 0, 1.0);
 			else
 				glRotated(-VAL(LEFT_ARM_Z_ROTATE), 0, 0, 1.0);
+			}
 			glTranslated(0, -2, 0);
 		
 			drawUpperArm();
@@ -922,10 +932,12 @@ void drawRightArm()
 	glPushMatrix();
 	{
 		glTranslated(0.5, -2, -0.75);
-
+		
+		
 		glRotated(-VAL(RIGHT_ARM_Y_ROTATE), 0, 1.0, 0);
 
 		glTranslated(0, 2, 0);
+		
 
 		if (VAL(MOOD) == 1)
 			glRotated(-90, 0, 0, 1.0);
@@ -935,15 +947,17 @@ void drawRightArm()
 			glRotated(-30, 0, 0, 1.0);
 		else 
 			glRotated(-VAL(RIGHT_ARM_Z_ROTATE), 0, 0, 1.0);
-
-
+		
 		glTranslated(0, -2, 0);
 
 		drawUpperArm();
-
+		// joint 1
+		ccd.updateJ1();
 		glPushMatrix();
 		{
 			glTranslated(0, 0, 0.5);
+			if (VAL(INVERSE_KINEMATICS) == 0)
+			{
 			if(VAL(MOOD)==1)
 				glRotated(-30, 1, 0, 0);
 			else if (VAL(MOOD) == 2)
@@ -954,6 +968,13 @@ void drawRightArm()
 				glRotated(-30, 1, 0, 0);
 			else
 				glRotated(VAL(RIGHT_LOWER_ARM_ROTATE), 1, 0, 0);
+			}
+			else
+			{
+				for (int i = ccd.maxLoop / 2 - 1; i >= 0; i--)
+				glRotated(ccd.rot_j1[i], ccd.axis_j1[i][0], 
+					ccd.axis_j1[i][0], ccd.axis_j1[i][0]);
+			}
 
 			drawLowerArm();
 
@@ -992,7 +1013,6 @@ void drawRightArm()
 					glRotated(-40 * ratio, 0, 1.0, 0);
 
 					drawHand();
-
 					glPushMatrix();
 					{
 						glTranslated(-0.25, -0.5, 0.6);
@@ -1013,6 +1033,9 @@ void drawRightArm()
 							if (VAL(MOOD) == 4)
 								glRotated(20, 1, 0, 0);
 							drawFinger(RIGHT, 2);
+							
+							// end point
+							ccd.updateEnd();
 						}
 						glPopMatrix();
 
@@ -1445,8 +1468,6 @@ void draw_shoulder_up_helper()
 	
 }
 
-
-
 // We are going to override (is that the right word?) the draw()
 // method of ModelerView to draw out SampleModel
 
@@ -1454,7 +1475,8 @@ void draw_shoulder_up_helper()
 
 void drawRobot()
 {
-
+	using namespace std;
+	
 	// draw the floor
 	setAmbientColor(.1f, .1f, .1f);
 	setDiffuseColor(COLOR_RED);
@@ -1495,10 +1517,14 @@ void drawRobot()
 				glRotated(30, 1, 0, 0);
 			else if (VAL(MOOD) == 4)
 				glRotated(30, 0, 0, 1);
+			//test body rotate
+			glRotated(VAL(BODY_ROTATE), 1, 0, 0);
 
 			glTranslated(VAL(XPOS), h_bottom + h_feet + h_leg + VAL(YPOS), VAL(ZPOS));
 			glRotated(90, 0, 1, 0);
 			glTranslated(0, -3, 0);
+			
+
 			glScaled(0.6, 0.6, 0.6);
 
 
@@ -1511,7 +1537,7 @@ void drawRobot()
 		drawBodyOut(h_middle);
 		glTranslated(0, h_middle, 0);
 		glScaled(1 / body_depth_scale, 1, 1 / body_width_scale);
-
+		
 			glPushMatrix();
 			{
 				// up shoulder right
@@ -1547,14 +1573,25 @@ void drawRobot()
 			glPopMatrix();
 
 			glTranslated(0, 0.2, 0.2);
-			if (VAL(MOOD) == 1)
-				glRotated(-90, 1.0, 0, 0);
-			else if(VAL(MOOD) == 3)
-				glRotated(-30, 1.0, 0, 0);
-			else if (VAL(MOOD) == 4)
-				glRotated(-40, 1, 0, 0);
+			if (VAL(INVERSE_KINEMATICS) == 0)
+			{
+			  if (VAL(MOOD) == 1)
+			  	glRotated(-90, 1.0, 0, 0);
+			  else if(VAL(MOOD) == 3)
+			  	glRotated(-30, 1.0, 0, 0);
+			  else if (VAL(MOOD) == 4)
+			  	glRotated(-40, 1, 0, 0);
+			  else
+			  	glRotated(VAL(RIGHT_ARM_X_ROTATE), 1.0, 0, 0);
+			}
 			else
-				glRotated(VAL(RIGHT_ARM_X_ROTATE), 1.0, 0, 0);
+			{
+				for (int i = ccd.maxLoop / 2 - 1; i >= 0; i--)
+					glRotated(ccd.rot_j0[i], ccd.axis_j0[i][0],
+						ccd.axis_j0[i][1], ccd.axis_j0[i][2]);
+			}
+			// shoulder joint
+			ccd.updateJ0();
 
 			glTranslated(0, -0.2, -0.2);
 			drawRightArm();
@@ -1590,8 +1627,9 @@ void drawRobot()
 
 		drawHead(h_head);
 		
+		glRotated(-VAL(BODY_ROTATE), 0, 0, 1);
 		drawFeet(h_middle, h_leg, h_feet);
-
+		glRotated(VAL(BODY_ROTATE), 0, 0, 1);
 		glPushMatrix();
 		int h = r1 + 2, h2 = 2.5;
 		{
@@ -1636,8 +1674,7 @@ void drawRobot()
 	glPopMatrix();
 }
 
-// We are going to override (is that the right word?) the draw()
-// method of ModelerView to draw out SampleModel
+int c = 0;
 void RobotModel::draw()
 {
 	static int state = 1;
@@ -1645,11 +1682,13 @@ void RobotModel::draw()
 	{
 		init_texture();
 		init = true;
-		//AllocConsole();
-		//freopen("CONOUT$", "w", stdout);
+		AllocConsole();
+		freopen("CONOUT$", "w", stdout);
 	}
 	else
 	{
+		
+		
 			if (ModelerApplication::Instance()->m_animating == true)
 			{
 				if (lastAnimate == false)
@@ -1695,6 +1734,8 @@ void RobotModel::draw()
 	else
 		glDisable(GL_TEXTURE_2D);
 	
+	/*cout << c << endl;
+	c++;*/
 	// This call takes care of a lot of the nasty projection 
 	// matrix stuff.  Unless you want to fudge directly with the 
 	// projection matrix, don't bother with this ...
@@ -1712,11 +1753,30 @@ void RobotModel::draw()
 	glLightfv(GL_LIGHT1, GL_DIFFUSE, light_intensity);
 	glLightfv(GL_LIGHT1, GL_SPECULAR, light_intensity);
 
+	if (VAL(INVERSE_KINEMATICS) == 1)
+	{
+		// double d[3] = { -6, 3 , 2 };
+		double d[3] = { VAL(DESTINATION_X),  VAL(DESTINATION_Y) ,  VAL(DESTINATION_Z) };
+		double curr[16];
+		glPushMatrix();
+		ccd.getWorld(curr);
+		//cout << curr[12] << " " << curr[13] << " " << curr[14] << endl;
+		glTranslated(d[0] - curr[12], d[1] - curr[13], d[2] - curr[14]);
+		setDiffuseColor(0.2, 0.2, 0.2);
+		drawSphere(1);
+		setDiffuseColor(0.5, 0.5, 0);
+		glPopMatrix();
+		if(ccd.index < ccd.maxLoop)
+			ccd.start(d);
+	}
+	else if (VAL(INVERSE_KINEMATICS) == 0)
+		ccd.index = 0;
 
 	if (VAL(METABALL)==0)
 	{
 		if (VAL(DISPLAY_L_SYSTEM) == 0)
 		{
+			glGetDoublev(GL_MODELVIEW_MATRIX, ccd.c);
 			drawRobot();
 		}
 		else
@@ -1879,6 +1939,11 @@ int main()
 
 	controls[METABALL] = ModelerControl("Metaball", 0, 1, 1, 0);
 
+	controls[INVERSE_KINEMATICS] = ModelerControl("Inverse Kinematics", 0, 1, 1, 0);
+	controls[DESTINATION_X] = ModelerControl("Destination x", -15, 15, 0.5, -2);//-6
+	controls[DESTINATION_Y] = ModelerControl("Destination y", -15, 15, 0.5, 6);//3
+	controls[DESTINATION_Z] = ModelerControl("Destination z", -15, 15, 0.5, 0.5);//2
+	controls[BODY_ROTATE] = ModelerControl("body rotate", -180, 180, 1, 0);
 	ModelerApplication::Instance()->Init(&createSampleModel, controls, NUMCONTROLS);
 	
 	return ModelerApplication::Instance()->Run();

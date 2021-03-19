@@ -6,6 +6,7 @@
 #define MODELERAPP_H
 
 #include "modelerview.h"
+#include "Kinematics.h"
 
 struct ModelerControl
 {
@@ -53,6 +54,8 @@ public:
 	
 	// Just a flag for updates
 	bool m_animating;
+	ModelerUserInterface *m_ui;
+
 private:
 	// Private for singleton
 	ModelerApplication() : m_numControls(-1) {}
@@ -68,7 +71,6 @@ private:
     void    ShowControl(int controlNumber);
     void    HideControl(int controlNumber);
 
-	ModelerUserInterface *m_ui;
 	int					  m_numControls;
 
     Fl_Box               **m_controlLabelBoxes;

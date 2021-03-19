@@ -173,9 +173,18 @@ void ModelerApplication::SliderCallback(Fl_Slider *, void *)
 
 void ModelerApplication::RedrawLoop(void*)
 {
-	if (ModelerApplication::Instance()->m_animating)
-		ModelerApplication::Instance()->m_ui->m_modelerView->redraw();
-
+    if (ModelerApplication::Instance()->m_animating)
+    {
+        ModelerApplication::Instance()->m_ui->m_modelerView->redraw();
+        Fl::add_timeout(0.025, ModelerApplication::RedrawLoop, NULL);
+    }
+    else if (VAL(INVERSE_KINEMATICS) == 1 && ccd.index < ccd.maxLoop)
+    {
+        return; // comment this to auto
+        ModelerApplication::Instance()->m_ui->m_modelerView->redraw();
+        Fl::add_timeout(0.25, ModelerApplication::RedrawLoop, NULL);
+    }
 	// 1/50 second update is good enough
-	Fl::add_timeout(0.025, ModelerApplication::RedrawLoop, NULL);
+    else
+        Fl::add_timeout(0.025, ModelerApplication::RedrawLoop, NULL);
 }

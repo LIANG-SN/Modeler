@@ -1,5 +1,7 @@
-#ifndef _MODELER_GLOBALS_H
-#define _MODELER_GLOBALS_H
+#pragma once
+#include "Kinematics.h"
+//#ifndef _MODELER_GLOBALS_H
+//#define _MODELER_GLOBALS_H
 
 #ifndef M_PI
 #define M_PI 3.141592653589793238462643383279502
@@ -12,7 +14,9 @@ enum SampleModelControls
 { 
 	DISPLAY_L_SYSTEM, OBJECT_TYPE, D_VALUE,
 	INITIAL_ANGLE, ANGLE_OF_INCREMENT, ITERATOR,
-
+	INVERSE_KINEMATICS,
+	DESTINATION_X, DESTINATION_Y, DESTINATION_Z,
+	BODY_ROTATE,
 	TEXTURE_MAPPING,
 	LIGHT_POS_X, LIGHT_POS_Y, LIGHT_POS_Z, LIGHT1_POS_X, LIGHT1_POS_Y, LIGHT1_POS_Z,
 	LIGHT_INTENSITY,
@@ -63,4 +67,6 @@ enum SampleModelControls
 // might as well have it as a macro.
 #define VAL(x) (ModelerApplication::Instance()->GetControlValue(x))
 #define SET(x, y) (ModelerApplication::Instance()->SetControlValue(x, y))
-#endif
+
+
+//#endif
