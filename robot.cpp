@@ -25,7 +25,7 @@ CubeVertices cubevertices(150);
 Vec3f Hand::v1 = Vec3f(-0.5, 0, 0);
 Vec3f Hand::v2 = Vec3f(0, -2.5, 0);
 Vec3f Hand::v3 = Vec3f(0, 0, 3);
-Vec3f Hand::target = Vec3f(-5,0,5);
+Vec3f Hand::target = Vec3f(-5.5,0,0);
 
 
 Hand hand0= Hand(0);
