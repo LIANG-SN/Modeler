@@ -25,7 +25,7 @@ CubeVertices cubevertices(150);
 Vec3f Hand::v1 = Vec3f(-0.5, 0, 0);
 Vec3f Hand::v2 = Vec3f(0, -2.5, 0);
 Vec3f Hand::v3 = Vec3f(0, 0, 3);
-Vec3f Hand::target = Vec3f(-5.5,0,0);
+Vec3f Hand::target = Vec3f(-0.5,0,5);
 
 
 Hand hand0= Hand(0);
@@ -71,7 +71,7 @@ void IK_implement()
 		}
 	}
 
-	cout << delta_min << endl;
+	//cout << delta_min << endl;
 }
 
 
@@ -1818,6 +1818,22 @@ void RobotModel::draw()
 	{
 		if (VAL(DISPLAY_L_SYSTEM) == 0)
 		{
+			if (VAL(INVERSE_KINEMATICS)==1)
+			{
+				Vec3f newTarget = Vec3f(VAL(DESTINATION_X), VAL(DESTINATION_Y), VAL(DESTINATION_Z));
+				//if ((newTarget - Hand::target).length() > 0.2)
+				//{
+					Hand::target = newTarget;
+					for (int i = 0; i < 4; i++)
+					{
+						hands[i]->init();
+						IK_angles[i] = 0;
+					}
+					IK_implement();
+				//}
+		
+			}
+			//IK_implement();
 			drawRobot();
 		}
 		else
@@ -1983,9 +1999,9 @@ int main()
 	controls[METABALL_DESTANICE] = ModelerControl("Metaball Distance", 0, 2.5, 0.01, 2.55);
 
 	controls[INVERSE_KINEMATICS] = ModelerControl("Inverse Kinematics", 0, 1, 1, 0);
-	controls[DESTINATION_X] = ModelerControl("Destination x", -15, 15, 0.5, -2);//-6
-	controls[DESTINATION_Y] = ModelerControl("Destination y", -15, 15, 0.5, 6);//3
-	controls[DESTINATION_Z] = ModelerControl("Destination z", -15, 15, 0.5, 0.5);//2
+	controls[DESTINATION_X] = ModelerControl("Destination x", 2, -5.5, 0.1, -0.5);//-6
+	controls[DESTINATION_Y] = ModelerControl("Destination y", 5.5, -5.5, 0.1, -2.5);//3
+	controls[DESTINATION_Z] = ModelerControl("Destination z", 5.5, -5.5, 0.1, 3);//2
 
 	ModelerApplication::Instance()->Init(&createSampleModel, controls, NUMCONTROLS);
 

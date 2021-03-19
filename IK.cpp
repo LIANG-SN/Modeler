@@ -46,7 +46,7 @@ void Hand::UpdatePoints()
 
 	delta = (target - point_end).length();
 
-	cout << point2 << point_end << endl;
+	//cout << point2 << point_end << endl;
 	
 }
 
@@ -126,12 +126,12 @@ void Hand::apply_Jacobian(int counter)
 	Vec4f delta_angle = inv * JT_delta;
 
 	float x = theta_x + learning_rate * delta_angle[0] / sqrt(counter + 1)*(1+(type==0));
-	if(x < M_PI && x > -M_PI / 2)
-		theta_x += 0.5 * learning_rate * delta_angle[0] / sqrt(counter+1) * (1 + (type == 0));
+	if(x < M_PI && x > -M_PI)
+		theta_x += learning_rate * delta_angle[0] / sqrt(counter+1) * (1 + (type == 0));
 	else if(x > M_PI )
 		theta_x = M_PI;
 	else
-		theta_x=-M_PI / 2;
+		theta_x=-M_PI ;
 
 	float z = theta_z + learning_rate * delta_angle[1] / sqrt(counter + 1) * (1 + (type == 1));
 	if ( z > -M_PI / 2 &&
@@ -162,5 +162,5 @@ void Hand::apply_Jacobian(int counter)
 		phi = M_PI / 2;
 
 
-	cout << theta_x << " " << theta_z << " " << theta_y << " " << phi << endl;;
+	//cout << theta_x << " " << theta_z << " " << theta_y << " " << phi << endl;;
 }
